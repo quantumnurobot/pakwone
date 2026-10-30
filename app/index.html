@@ -1,0 +1,860 @@
+<title>BrainLock Examiner</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root{
+  --paper:#F3F6F4; --panel:#FFFFFF; --sunk:#EAF0EC; --ink:#14201C; --muted:#56635D; --line:#D5DDD8;
+  --probe:#C2362F; --target:#2F5BD3; --irr:#7F8A84; --accent:#0F6B57; --accent-ink:#FFFFFF;
+  --grid:#E3E9E5; --good:#1C7C4A; --good-bg:#E3F4EA; --warn:#8A5A00; --warn-bg:#FFF2DC; --bad:#A42A24; --bad-bg:#FBE6E4;
+  --neutral-bg:#ECEFF1; --neutral:#43505A;
+  --display:"Bricolage Grotesque","Segoe UI",system-ui,sans-serif;
+  --body:"IBM Plex Sans","Segoe UI",system-ui,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --paper:#0E1513; --panel:#16201D; --sunk:#111A17; --ink:#E6EEEA; --muted:#9AA8A1; --line:#2A3833;
+    --probe:#F0645B; --target:#7C9DFF; --irr:#86938D; --accent:#3FBF9C; --accent-ink:#06120E;
+    --grid:#1F2B27; --good:#6FD79E; --good-bg:#12291D; --warn:#F2C47A; --warn-bg:#2A2111; --bad:#FF8A82; --bad-bg:#2E1513;
+    --neutral-bg:#1F2629; --neutral:#B7C2C9;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --paper:#0E1513; --panel:#16201D; --sunk:#111A17; --ink:#E6EEEA; --muted:#9AA8A1; --line:#2A3833;
+  --probe:#F0645B; --target:#7C9DFF; --irr:#86938D; --accent:#3FBF9C; --accent-ink:#06120E;
+  --grid:#1F2B27; --good:#6FD79E; --good-bg:#12291D; --warn:#F2C47A; --warn-bg:#2A2111; --bad:#FF8A82; --bad-bg:#2E1513;
+  --neutral-bg:#1F2629; --neutral:#B7C2C9;
+}
+*{box-sizing:border-box}
+body{background:var(--paper);color:var(--ink);font:15px/1.55 var(--body);padding-inline:16px}
+.shell{max-width:1180px;margin-inline:auto;padding-block:0 48px}
+h1,h2,h3{font-family:var(--display);line-height:1.15;margin:0;text-wrap:balance}
+h1{font-size:1.25rem;font-weight:800}
+h2{font-size:1.55rem;font-weight:800;letter-spacing:-.01em}
+h3{font-size:1.02rem;font-weight:600}
+p{margin:0;max-width:68ch}
+.label{font:500 .72rem/1.2 var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.mono{font-family:var(--mono)} .num{font-variant-numeric:tabular-nums}
+.muted{color:var(--muted)}
+a{color:var(--accent)}
+
+/* header */
+.top{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:10px 16px;padding-block:16px;border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:center;gap:10px}
+.brand svg{width:26px;height:26px;flex:none}
+.pill{display:inline-flex;align-items:center;gap:6px;font:500 .74rem/1 var(--mono);padding:6px 9px;border-radius:999px;background:var(--sunk);color:var(--muted);white-space:nowrap}
+.pill.warn{background:var(--warn-bg);color:var(--warn)}
+.top-right{display:flex;flex-wrap:wrap;gap:8px}
+
+/* nav */
+nav{display:flex;gap:4px;overflow-x:auto;padding-block:12px;border-bottom:1px solid var(--line);margin-bottom:24px}
+nav button{font:500 .92rem/1 var(--body);background:none;border:0;color:var(--muted);padding:10px 12px;border-radius:6px;cursor:pointer;white-space:nowrap;display:flex;gap:8px;align-items:center}
+nav button .n{font:500 .72rem/1 var(--mono);width:20px;height:20px;border-radius:50%;display:inline-grid;place-items:center;border:1.5px solid var(--line)}
+nav button.done .n{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+nav button[aria-current="page"]{background:var(--panel);color:var(--ink);box-shadow:0 0 0 1px var(--line)}
+nav .sep{width:1px;background:var(--line);margin-inline:6px;flex:none}
+button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible,summary:focus-visible{outline:3px solid var(--target);outline-offset:2px}
+
+/* layout */
+.view{display:grid;gap:20px}
+.view-head{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:12px}
+.view-head .lede{color:var(--muted);margin-top:6px}
+.grid2{display:grid;grid-template-columns:1.2fr .8fr;gap:20px;align-items:start}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:20px;display:grid;gap:16px;align-content:start}
+.row{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+.fields3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.fields2{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
+label.f{display:grid;gap:6px;font-weight:500}
+label.f small{font-weight:400;color:var(--muted)}
+input[type=text],input[type=number],textarea,select{font:inherit;color:var(--ink);background:var(--paper);border:1px solid var(--line);border-radius:6px;padding:9px 10px;width:100%}
+textarea{min-height:120px;resize:vertical;font-family:var(--mono);font-size:.9rem;line-height:1.5}
+input:disabled,textarea:disabled,select:disabled{opacity:.7}
+.cls-probe{border-top:3px solid var(--probe)} .cls-target{border-top:3px solid var(--target)} .cls-irr{border-top:3px solid var(--irr)}
+.btn{font:600 .95rem/1 var(--body);padding:11px 16px;border-radius:6px;border:1.5px solid var(--accent);background:var(--accent);color:var(--accent-ink);cursor:pointer;display:inline-flex;gap:8px;align-items:center}
+.btn.ghost{background:transparent;color:var(--accent)}
+.btn.quiet{background:transparent;color:var(--muted);border-color:var(--line)}
+.btn.danger{background:transparent;color:var(--bad);border-color:var(--bad)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.msg{padding:10px 12px;border-radius:6px;font-size:.92rem}
+.msg.bad{background:var(--bad-bg);color:var(--bad)} .msg.good{background:var(--good-bg);color:var(--good)} .msg.warn{background:var(--warn-bg);color:var(--warn)}
+.msg ul{margin:4px 0 0;padding-left:18px}
+.hash{font:.82rem/1.4 var(--mono);word-break:break-all;background:var(--sunk);padding:8px 10px;border-radius:6px}
+.checks{display:grid;gap:10px}
+.checks label{display:grid;grid-template-columns:20px 1fr;gap:10px;align-items:start}
+.checks input{margin-top:3px;width:16px;height:16px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{font:500 .85rem/1 var(--mono);padding:8px 10px;border-radius:6px;border:1px solid var(--line);background:var(--paper);cursor:pointer;color:var(--ink)}
+.chip[aria-pressed="true"]{background:var(--warn-bg);border-color:var(--warn);color:var(--warn);text-decoration:line-through}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:6px 16px;font-size:.92rem}
+.kv dt{color:var(--muted)} .kv dd{margin:0;font-family:var(--mono);font-size:.86rem;word-break:break-word}
+
+/* stage */
+.stage{background:#262B2A;color:#F2F4F3;border-radius:10px;aspect-ratio:16/9;max-width:100%;display:grid;place-items:center;position:relative;overflow:hidden;user-select:none}
+.stage .word{font:500 clamp(1.6rem,5vw,3.2rem)/1 var(--mono);letter-spacing:.02em}
+.stage .fix{font:300 2.4rem/1 var(--body);color:#9AA39F}
+.stage .overlay{position:absolute;inset:auto 12px 10px 12px;display:flex;justify-content:space-between;font:.75rem/1 var(--mono);color:#9AA39F}
+.stage .idle{display:grid;gap:10px;justify-items:center;text-align:center;padding:16px;max-width:44ch;color:#C9D0CC}
+.stage:fullscreen{border-radius:0;aspect-ratio:auto}
+.counters{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.counter{display:grid;gap:4px}
+.counter b{font:500 1.3rem/1 var(--mono)}
+.bar{height:6px;border-radius:3px;background:var(--grid);overflow:hidden}
+.bar i{display:block;height:100%;background:var(--accent);width:0}
+.sq{display:flex;align-items:center;gap:8px;font:.85rem/1 var(--mono)}
+.sq .dot{width:10px;height:10px;border-radius:50%;background:var(--irr)}
+.sq.ok .dot{background:var(--good)} .sq.art .dot{background:var(--bad)}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:6px;overflow:hidden;flex-wrap:wrap}
+.seg label{display:flex;align-items:center;gap:6px;padding:8px 12px;cursor:pointer;font-size:.9rem;border-right:1px solid var(--line)}
+.seg label:last-child{border-right:0}
+.seg input{accent-color:var(--accent)}
+
+/* report */
+.verdict{display:grid;grid-template-columns:auto 1fr;gap:6px 16px;align-items:center;padding:18px 20px;border-radius:10px;border:1px solid var(--line);background:var(--panel)}
+.vchip{font:600 .8rem/1 var(--mono);letter-spacing:.06em;text-transform:uppercase;padding:8px 10px;border-radius:6px;grid-row:span 2;align-self:start}
+.v-information_present{background:var(--bad-bg);color:var(--bad)}
+.v-information_absent{background:var(--good-bg);color:var(--good)}
+.v-indeterminate{background:var(--neutral-bg);color:var(--neutral)}
+.v-invalid,.v-stopped{background:var(--warn-bg);color:var(--warn)}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.stat{background:var(--panel);padding:14px 16px;display:grid;gap:6px}
+.stat b{font:500 1.35rem/1 var(--mono)}
+.stat small{color:var(--muted);font-size:.8rem}
+.chart svg{width:100%;height:auto;display:block}
+.chart .ax{font:11px var(--mono);fill:var(--muted)}
+.chart .gl{stroke:var(--grid);stroke-width:1}
+.chart .zero{stroke:var(--line);stroke-width:1}
+.chart .onset{stroke:var(--ink);stroke-dasharray:3 3;stroke-width:1}
+.chart .win{fill:var(--accent);opacity:.08}
+.chart .wl{font:10.5px var(--mono);fill:var(--accent)}
+.chart .t-probe{stroke:var(--probe);stroke-width:2.6;fill:none}
+.chart .t-target{stroke:var(--target);stroke-width:2.1;fill:none}
+.chart .t-irrelevant{stroke:var(--irr);stroke-width:2;fill:none}
+.chart .sb-track{fill:var(--grid)}
+.chart .sb-fill{fill:var(--ink)}
+.chart .sb-th{stroke:var(--ink);stroke-width:1.5;stroke-dasharray:3 2}
+.chart .sb-lbl{font:13px var(--body);fill:var(--ink)}
+.chart .sb-val{font:500 13px var(--mono);fill:var(--ink)}
+.chart .zone-present{fill:var(--bad);opacity:.12} .chart .zone-absent{fill:var(--good);opacity:.14}
+.legend{display:flex;flex-wrap:wrap;gap:14px;font:.8rem/1.2 var(--mono);color:var(--muted)}
+.legend span{display:inline-flex;gap:6px;align-items:center}
+.legend i{width:16px;height:3px;border-radius:2px;display:inline-block}
+.sim-banner{font:600 .78rem/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--warn);background:var(--warn-bg);padding:8px 10px;border-radius:6px;justify-self:start}
+.notes{display:grid;gap:10px}
+.note{border-left:3px solid var(--line);padding-left:10px}
+.note small{color:var(--muted);font-family:var(--mono);font-size:.76rem}
+.limits{font-size:.9rem;color:var(--muted)}
+.limits li{margin-bottom:4px}
+
+/* tables */
+.tbl{overflow-x:auto}
+table{border-collapse:collapse;width:100%;min-width:560px;font-variant-numeric:tabular-nums}
+th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font:500 .72rem/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+tbody tr.click{cursor:pointer} tbody tr.click:hover{background:var(--sunk)}
+td .vchip{display:inline-block;padding:5px 7px;font-size:.7rem}
+.tag{font:500 .7rem/1 var(--mono);padding:3px 6px;border-radius:4px;background:var(--warn-bg);color:var(--warn);margin-left:6px}
+.audit td{font-family:var(--mono);font-size:.8rem}
+.empty{padding:28px;text-align:center;color:var(--muted)}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--paper);padding:10px 16px;border-radius:6px;font-size:.9rem;z-index:10}
+footer{margin-top:40px;padding-top:16px;border-top:1px solid var(--line);font-size:.8rem;color:var(--muted)}
+
+@media (max-width:900px){
+  .grid2,.fields3,.fields2{grid-template-columns:1fr}
+  .stats,.counters{grid-template-columns:repeat(2,1fr)}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+
+<div class="shell">
+  <header class="top">
+    <div class="brand">
+      <svg viewBox="0 0 26 26" aria-hidden="true"><rect width="26" height="26" rx="6" style="fill:var(--ink)"/><path d="M3 15 C7 15 7 15 9 15 S11 5 13 5 S15 19 17 19 S19 13 23 13" style="fill:none;stroke:var(--probe);stroke-width:2.2;stroke-linecap:round"/></svg>
+      <h1>BrainLock Examiner</h1>
+    </div>
+    <div class="top-right">
+      <span class="pill warn">Research use only</span>
+      <span class="pill">Data stays in this browser</span>
+    </div>
+  </header>
+
+  <nav id="nav" aria-label="Examiner steps">
+    <button data-view="protocol"><span class="n">1</span>Protocol</button>
+    <button data-view="consent"><span class="n">2</span>Consent</button>
+    <button data-view="record"><span class="n">3</span>Record</button>
+    <button data-view="report"><span class="n">4</span>Report</button>
+    <span class="sep" aria-hidden="true"></span>
+    <button data-view="sessions">Sessions</button>
+    <button data-view="audit">Audit log</button>
+  </nav>
+
+  <main id="main"></main>
+
+  <footer>
+    BrainLock detects recognition of specific details. It does not detect lies, guilt or intent, and it is not validated for legal or employment decisions. Engine: <span class="mono" id="ver"></span>
+  </footer>
+</div>
+<div class="toast" id="toast" hidden></div>
+
+<script src="brainprint.js"></script>
+<script>
+(function(){
+"use strict";
+var O = Object.assign({}, BP.DEFAULTS);
+var STORE = "brainlock.examiner.v1";
+var KIND_LABEL = {probe:"Probe", target:"Target", irrelevant:"Irrelevant"};
+var VERDICT = {
+  information_present:{chip:"Information present", text:"The probe responses matched the known-target responses. Both tests reached the presence threshold."},
+  information_absent:{chip:"Information absent", text:"The probe responses matched the irrelevant responses. Both tests fell to the absence threshold."},
+  indeterminate:{chip:"Indeterminate", text:"The data does not support a conclusion either way. Treat this session as giving no answer."},
+  invalid:{chip:"Invalid session", text:"Too many trials were rejected to analyze. Check electrode contact and re-test."},
+  stopped:{chip:"Stopped", text:"The session was stopped before it finished. Nothing was analyzed."}
+};
+
+// ---------------- state ----------------
+function exampleProtocol(){
+  return {name:"Workshop break-in (example)", version:1, probes:["crowbar"], targets:["screwdriver"],
+    irrelevants:["hammer","wrench","pliers","chisel"], provenance:"crowbar: tool recovered at the scene, listed only in the sealed evidence log; never released to press or discussed with the subject.",
+    repetitions:30, presentThreshold:0.9, absentThreshold:0.3, locked:false, hash:null, lockedAt:null};
+}
+var S = load() || {protocol:exampleProtocol(), subject:null, sessions:[], audit:[], view:"report", reportId:null, seeded:false};
+var run = null; // live recording state (not persisted)
+
+function load(){ try{ var raw = localStorage.getItem(STORE); return raw ? JSON.parse(raw) : null; }catch(e){ return null; } }
+function save(){ try{ localStorage.setItem(STORE, JSON.stringify(S)); }catch(e){} }
+
+// ---------------- hashing and audit ----------------
+function hex(buf){ return Array.prototype.map.call(new Uint8Array(buf), function(b){return b.toString(16).padStart(2,"0");}).join(""); }
+function fnv(str){ var h=0x811c9dc5; for(var i=0;i<str.length;i++){ h^=str.charCodeAt(i); h=Math.imul(h,0x01000193)>>>0; } return "fnv1a:"+h.toString(16).padStart(8,"0"); }
+function sha256(str){
+  try{ if(window.crypto && crypto.subtle) return crypto.subtle.digest("SHA-256", new TextEncoder().encode(str)).then(function(b){return "sha256:"+hex(b);}).catch(function(){return fnv(str);}); }catch(e){}
+  return Promise.resolve(fnv(str));
+}
+function canon(p){ return JSON.stringify({name:p.name,version:p.version,probes:p.probes,targets:p.targets,irrelevants:p.irrelevants,provenance:p.provenance,repetitions:p.repetitions,presentThreshold:p.presentThreshold,absentThreshold:p.absentThreshold}); }
+var auditQueue = Promise.resolve();
+function audit(action, detail){
+  auditQueue = auditQueue.then(function(){
+    var prev = S.audit.length ? S.audit[S.audit.length-1].hash : "genesis";
+    var ev = {ts:new Date().toISOString(), action:action, detail:detail||"", prev:prev};
+    return sha256(prev+"|"+ev.ts+"|"+action+"|"+ev.detail).then(function(h){ ev.hash=h; S.audit.push(ev); save(); if(S.view==="audit") render(); });
+  });
+  return auditQueue;
+}
+
+// ---------------- helpers ----------------
+function $(sel, root){ return (root||document).querySelector(sel); }
+function el(tag, attrs, kids){
+  var n = document.createElement(tag);
+  if(attrs) Object.keys(attrs).forEach(function(k){
+    var v = attrs[k];
+    if(k==="text") n.textContent = v;
+    else if(k==="html") n.innerHTML = v;
+    else if(k.slice(0,2)==="on") n.addEventListener(k.slice(2), v);
+    else if(v===true) n.setAttribute(k,"");
+    else if(v!==false && v!=null) n.setAttribute(k, v);
+  });
+  (kids||[]).forEach(function(c){ if(c!=null) n.appendChild(typeof c==="string" ? document.createTextNode(c) : c); });
+  return n;
+}
+function lines(t){ return t.split(/\n/).map(function(s){return s.trim();}).filter(Boolean); }
+function pct(x){ return Math.round(x*100)+"%"; }
+function fmtDate(iso){ var d=new Date(iso); return d.toLocaleDateString(undefined,{year:"numeric",month:"short",day:"numeric"})+" "+d.toLocaleTimeString(undefined,{hour:"2-digit",minute:"2-digit"}); }
+function shortHash(h){ return h ? h.replace(/^(sha256|fnv1a):/,"").slice(0,12) : "—"; }
+function toast(msg){ var t=$("#toast"); t.textContent=msg; t.hidden=false; clearTimeout(toast.t); toast.t=setTimeout(function(){t.hidden=true;},2600); }
+function uid(){ return "S"+Date.now().toString(36).toUpperCase().slice(-6)+Math.floor(Math.random()*36).toString(36).toUpperCase(); }
+function round2(a){ return a.map(function(v){return Math.round(v*100)/100;}); }
+var downloadsP = (window.claude && window.claude.use) ? window.claude.use("downloads") : Promise.resolve(null);
+var downloadsNs = null; downloadsP.then(function(d){ downloadsNs=d; if(d && !(run && run.active)) render(); });
+function offerFile(name, data){
+  if(!downloadsNs) return;
+  downloadsNs.save({filename:name, data:data}).then(function(){ toast("Saved "+name); }).catch(function(e){
+    if(e && e.code==="declined") return;
+    toast(e && e.code==="rate_limited" ? "A save prompt is already open." : "Saving isn't available here.");
+  });
+}
+function copyText(txt){
+  try{ navigator.clipboard.writeText(txt).then(function(){toast("Copied to clipboard");}, function(){toast("Copy was blocked. Select the text in the report instead.");}); }
+  catch(e){ toast("Copy was blocked. Select the text in the report instead."); }
+}
+
+// ---------------- navigation ----------------
+function stepsDone(){
+  return {protocol:!!S.protocol.locked, consent:!!(S.subject && S.subject.consentedAt), record:false, report:false};
+}
+function go(view){ if(run && run.active && view!=="record"){ toast("Stop or finish the recording first."); return; } S.view=view; save(); render(); window.scrollTo(0,0); }
+$("#nav").addEventListener("click", function(e){ var b=e.target.closest("button[data-view]"); if(b) go(b.dataset.view); });
+$("#ver").textContent = BP.VERSION;
+
+function render(){
+  var done = stepsDone();
+  document.querySelectorAll("#nav button").forEach(function(b){
+    var v=b.dataset.view; b.classList.toggle("done", !!done[v]);
+    if(v===S.view) b.setAttribute("aria-current","page"); else b.removeAttribute("aria-current");
+  });
+  var main=$("#main"); main.innerHTML="";
+  var fn = {protocol:viewProtocol, consent:viewConsent, record:viewRecord, report:viewReport, sessions:viewSessions, audit:viewAudit}[S.view] || viewReport;
+  main.appendChild(fn());
+}
+
+// ---------------- 1. protocol ----------------
+function viewProtocol(){
+  var p=S.protocol, locked=p.locked;
+  var v=el("section",{class:"view"});
+  v.appendChild(el("div",{class:"view-head"},[
+    el("div",{},[el("span",{class:"label",text:"Step 1"}), el("h2",{text:"Build and lock the protocol"}),
+      el("p",{class:"lede",text:"List one item per line. Probes are details only someone with inside knowledge would recognize. Targets are taught to the subject before the test. Irrelevants are plausible but wrong. Locking fixes the lists with a hash, so no one can change them after seeing results."})])
+  ]));
+  var name=el("input",{type:"text",id:"p-name",value:p.name,disabled:locked});
+  var reps=el("input",{type:"number",id:"p-reps",min:"5",max:"100",value:p.repetitions,disabled:locked});
+  var pt=el("input",{type:"number",id:"p-pt",min:"0.5",max:"0.99",step:"0.01",value:p.presentThreshold,disabled:locked});
+  var at=el("input",{type:"number",id:"p-at",min:"0.01",max:"0.5",step:"0.01",value:p.absentThreshold,disabled:locked});
+  var tp=el("textarea",{id:"p-probes",disabled:locked}); tp.value=p.probes.join("\n");
+  var tt=el("textarea",{id:"p-targets",disabled:locked}); tt.value=p.targets.join("\n");
+  var ti=el("textarea",{id:"p-irr",disabled:locked}); ti.value=p.irrelevants.join("\n");
+  var prov=el("textarea",{id:"p-prov",disabled:locked,style:"min-height:90px;font-family:var(--body)"}); prov.value=p.provenance||"";
+  var errBox=el("div"); var info=el("p",{class:"muted"});
+
+  function read(){
+    return Object.assign({},p,{name:name.value.trim()||"Untitled protocol", repetitions:+reps.value, presentThreshold:+pt.value, absentThreshold:+at.value,
+      probes:lines(tp.value), targets:lines(tt.value), irrelevants:lines(ti.value), provenance:prov.value.trim()});
+  }
+  function errors(q){
+    var e=BP.validateProtocol(q);
+    if(!q.provenance) e.push("Record the provenance of each probe: how it is known, and why the subject could not have learned it innocently.");
+    if(!(q.presentThreshold>q.absentThreshold)) e.push("The presence threshold must be higher than the absence threshold.");
+    return e;
+  }
+  function refresh(){
+    if(locked) return;
+    var q=read(); S.protocol=q; save();
+    var e=errors(q); errBox.innerHTML="";
+    if(e.length){ errBox.appendChild(el("div",{class:"msg bad"},[el("strong",{text:"Before you can lock:"}), el("ul",{},e.map(function(x){return el("li",{text:x});}))])); }
+    var trials=(q.probes.length+q.targets.length+q.irrelevants.length)*q.repetitions;
+    info.textContent=trials+" trials · about "+Math.round(trials*3/60)+" min at the standard 3-second pace";
+    lockBtn.disabled=!!e.length;
+  }
+  var lockBtn=el("button",{class:"btn",text:"Lock protocol",onclick:function(){
+    var q=read(); if(errors(q).length) return;
+    sha256(canon(q)).then(function(h){
+      q.locked=true; q.hash=h; q.lockedAt=new Date().toISOString(); S.protocol=q; S.subject=null; save();
+      audit("protocol.locked", q.name+" v"+q.version+" "+h).then(function(){ toast("Protocol locked"); go("consent"); });
+    });
+  }});
+  var newBtn=el("button",{class:"btn ghost",text:"Create new version",onclick:function(){
+    var q=Object.assign({},p,{version:(p.version||1)+1, locked:false, hash:null, lockedAt:null});
+    S.protocol=q; S.subject=null; save(); audit("protocol.new_version", q.name+" v"+q.version); render();
+  }});
+  var resetBtn=el("button",{class:"btn quiet",text:"Load example",onclick:function(){ S.protocol=exampleProtocol(); save(); render(); }});
+  var pilotBtn=el("button",{class:"btn ghost",text:"Load pilot protocol",onclick:function(){
+    fetch("pilot-protocol.json").then(function(r){ if(!r.ok) throw new Error(r.status); return r.text(); })
+      .then(function(t){ importProtocol(t, "pilot-protocol.json"); })
+      .catch(function(){ toast("Couldn't load the pilot protocol file."); });
+  }});
+  var importIn=el("input",{type:"file",id:"p-import",accept:".json,application/json",hidden:true});
+  importIn.addEventListener("change",function(){ var f=importIn.files[0]; if(!f) return; var rd=new FileReader(); rd.onload=function(){ importProtocol(String(rd.result), f.name); }; rd.readAsText(f); importIn.value=""; });
+  var importBtn=el("button",{class:"btn quiet",text:"Import protocol (JSON)",onclick:function(){ importIn.click(); }});
+  var exportBtn=downloadsNs ? el("button",{class:"btn quiet",text:"Save protocol (JSON)",onclick:function(){ offerFile(slug(p.name)+"-v"+p.version+".json", JSON.stringify(exportProtocol(S.protocol),null,2)); }}) : null;
+
+  [name,reps,pt,at,tp,tt,ti,prov].forEach(function(n){ n.addEventListener("input",refresh); });
+
+  var lists=el("div",{class:"fields3"},[
+    el("label",{class:"f card cls-probe",for:"p-probes"},[el("span",{text:"Probes"}),el("small",{text:"Known only to someone involved"}),tp]),
+    el("label",{class:"f card cls-target",for:"p-targets"},[el("span",{text:"Targets"}),el("small",{text:"Taught before the test; subject presses a button for these"}),tt]),
+    el("label",{class:"f card cls-irr",for:"p-irr"},[el("span",{text:"Irrelevants"}),el("small",{text:"At least twice as many as probes"}),ti])
+  ]);
+  v.appendChild(lists);
+  var side=el("div",{class:"card"},[
+    el("h3",{text:"Settings"}),
+    el("label",{class:"f",for:"p-name"},["Protocol name",name]),
+    el("div",{class:"fields2"},[el("label",{class:"f",for:"p-reps"},["Repetitions per item",reps]), el("div")]),
+    el("div",{class:"fields2"},[
+      el("label",{class:"f",for:"p-pt"},["Presence threshold",el("small",{text:"Both tests must reach this"}),pt]),
+      el("label",{class:"f",for:"p-at"},["Absence threshold",el("small",{text:"Both tests must fall to this"}),at])
+    ])
+  ]);
+  var provCard=el("div",{class:"card"},[el("h3",{text:"Probe provenance"}), el("label",{class:"f",for:"p-prov"},[el("small",{text:"How is each probe known, and why couldn't the subject have learned it from the news, rumor or questioning?"}),prov])]);
+  v.appendChild(el("div",{class:"grid2"},[provCard, side]));
+  if(p.study) v.appendChild(studyCard(p.study));
+  if(locked){
+    v.appendChild(el("div",{class:"card"},[
+      el("div",{class:"msg good",text:"Locked "+fmtDate(p.lockedAt)+". These lists can no longer change. To edit, create a new version."}),
+      el("div",{class:"hash",text:p.hash}),
+      el("div",{class:"row"},[el("button",{class:"btn",text:"Continue to consent",onclick:function(){go("consent");}}), newBtn, exportBtn])
+    ]));
+  } else {
+    v.appendChild(el("div",{class:"card"},[errBox, info, el("div",{class:"row"},[lockBtn, pilotBtn, importBtn, importIn, exportBtn, resetBtn])]));
+    setTimeout(refresh);
+  }
+  return v;
+}
+
+// ---------------- protocol files ----------------
+var PROTOCOL_FORMAT="brainlock.protocol/1";
+function slug(s){ return (s||"protocol").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"").slice(0,48)||"protocol"; }
+function exportProtocol(p){
+  var out={format:PROTOCOL_FORMAT, name:p.name, version:p.version, probes:p.probes, targets:p.targets, irrelevants:p.irrelevants,
+    provenance:p.provenance, repetitions:p.repetitions, presentThreshold:p.presentThreshold, absentThreshold:p.absentThreshold,
+    locked:!!p.locked, hash:p.hash||null, lockedAt:p.lockedAt||null};
+  ["categories","analysis","study","stimulusMs","isiMs"].forEach(function(k){ if(p[k]!=null) out[k]=p[k]; });
+  return out;
+}
+function importProtocol(text, filename){
+  var d;
+  try{ d=JSON.parse(text); }catch(e){ toast(filename+" isn't valid JSON."); return; }
+  if(!d || d.format!==PROTOCOL_FORMAT){ toast(filename+" isn't a BrainLock protocol file."); return; }
+  function list(x){ return Array.isArray(x) ? x.map(function(s){return String(s).trim();}).filter(Boolean) : []; }
+  var q={name:String(d.name||"Imported protocol").slice(0,120), version:+d.version||1, probes:list(d.probes), targets:list(d.targets), irrelevants:list(d.irrelevants),
+    provenance:String(d.provenance||""), repetitions:+d.repetitions||O.repetitions,
+    presentThreshold:+d.presentThreshold||O.presentThreshold, absentThreshold:+d.absentThreshold||O.absentThreshold,
+    locked:false, hash:null, lockedAt:null};
+  ["categories","analysis","study","stimulusMs","isiMs"].forEach(function(k){ if(d[k]!=null) q[k]=d[k]; });
+  var errs=BP.validateProtocol(q);
+  if(errs.length){ toast("Can't import: "+errs[0]); return; }
+  // An imported protocol always arrives unlocked; it must be locked here so its hash is computed by this app.
+  S.protocol=q; S.subject=null; save();
+  audit("protocol.imported", filename+" · "+q.name+" v"+q.version).then(function(){ toast("Imported "+q.name+". Review it, then lock it."); render(); });
+}
+function studyCard(st){
+  var kv=el("dl",{class:"kv"},[
+    el("dt",{text:"Study"}), el("dd",{text:st.title||"—"}),
+    el("dt",{text:"Groups"}), el("dd",{text:(st.arms||[]).map(function(a){return a.id;}).join(", ")+(st.participantsPerArm?" · "+st.participantsPerArm+" per group":"")}),
+    el("dt",{text:"Blinding"}), el("dd",{text:st.blinding||"—"}),
+    el("dt",{text:"Recording"}), el("dd",{text:st.recording?(st.recording.channels||[]).join(", ")+" · "+st.recording.sampleRateHz+" Hz · "+st.recording.format:"—"})
+  ]);
+  var crit=el("ul",{class:"limits"},(st.successCriteria||[]).map(function(c){ return el("li",{text:c.measure+": "+c.target}); }));
+  return el("div",{class:"card"},[el("h3",{text:"Study design"}), el("div",{class:"msg warn",text:"Planned study. No participants have been tested yet, so there are no study results in this app."}), kv, el("h3",{text:"Success criteria"}), crit]);
+}
+
+/** One row per session. Simulated and example sessions are labelled so they can't be mistaken for real recordings. */
+function sessionsCsv(list){
+  function q(v){ v=v==null?"":String(v); return /[",\n]/.test(v) ? '"'+v.replace(/"/g,'""')+'"' : v; }
+  var cols=["session_id","created_at","subject","data_source","example","protocol_name","protocol_version","protocol_hash","verdict","correlation_support","amplitude_support","probe_trials","target_trials","irrelevant_trials","rejected_trials","total_trials","targets_shown","target_hits","engine"];
+  var rows=[cols.join(",")];
+  list.forEach(function(s){
+    var r=s.result||{}, n=r.nTrials||{}, a=s.attention||{};
+    rows.push([s.id,s.createdAt,s.subject,s.source,s.example?"yes":"no",s.protocol.name,s.protocol.version,s.protocol.hash,s.verdict,
+      r.correlationSupport,r.amplitudeSupport,n.probe,n.target,n.irrelevant,r.rejected,r.total,a.shown,a.hits,r.version].map(q).join(","));
+  });
+  return rows.join("\n")+"\n";
+}
+
+// ---------------- 2. consent ----------------
+var CONSENT_ITEMS=[
+  "I understand I will watch words on a screen while a headset records my brain activity.",
+  "I can stop the session at any time, for any reason, without penalty.",
+  "The test detects recognition of specific details only. It is not a lie detector, and the result can be \"indeterminate\".",
+  "My recording is stored under a pseudonym on this device and can be deleted on request.",
+  "I agree to take part in this research session."
+];
+function viewConsent(){
+  var v=el("section",{class:"view"}), p=S.protocol;
+  v.appendChild(el("div",{class:"view-head"},[el("div",{},[el("span",{class:"label",text:"Step 2"}),el("h2",{text:"Brief the subject and record consent"}),
+    el("p",{class:"lede",text:"Read each statement with the subject. Then run the pre-test interview: the subject marks any item they already recognize, and those items are left out of this session."})])]));
+  if(!p.locked){ v.appendChild(el("div",{class:"msg warn"},["Lock the protocol first. ", el("button",{class:"btn ghost",text:"Go to protocol",onclick:function(){go("protocol");}})])); return v; }
+  var sub=S.subject||{pseudonym:"", checks:[], excluded:[]};
+  var ps=el("input",{type:"text",id:"c-ps",placeholder:"e.g. S-014",value:sub.pseudonym});
+  var checks=CONSENT_ITEMS.map(function(t,i){ var c=el("input",{type:"checkbox",id:"c-"+i}); c.checked=sub.checks.indexOf(i)>=0; return el("label",{for:"c-"+i},[c,el("span",{text:t})]); });
+  var excluded=new Set(sub.excluded||[]);
+  var items=p.probes.concat(p.targets,p.irrelevants);
+  var chipsBox=el("div",{class:"chips"}, items.filter(function(t){return p.targets.indexOf(t)<0;}).map(function(t){
+    return el("button",{class:"chip",type:"button","aria-pressed":excluded.has(t)?"true":"false",text:t,onclick:function(e){
+      if(excluded.has(t)) excluded.delete(t); else excluded.add(t);
+      e.currentTarget.setAttribute("aria-pressed",excluded.has(t)?"true":"false"); upd();
+    }});
+  }));
+  var status=el("div"), btn=el("button",{class:"btn",text:"Record consent"});
+  function state(){
+    var probesLeft=p.probes.filter(function(t){return !excluded.has(t);}).length;
+    var irrLeft=p.irrelevants.filter(function(t){return !excluded.has(t);}).length;
+    var e=[];
+    if(!ps.value.trim()) e.push("Enter a pseudonym. Don't use the subject's real name.");
+    if(checks.some(function(l){return !l.firstChild.checked;})) e.push("Every statement must be confirmed.");
+    if(!probesLeft) e.push("The subject recognizes every probe, so this protocol can't test them. Create a new protocol version with different probes.");
+    else if(irrLeft<2*probesLeft) e.push("Too few irrelevants remain after exclusions. Add more irrelevants in a new protocol version.");
+    return e;
+  }
+  function upd(){ var e=state(); status.innerHTML=""; if(e.length) status.appendChild(el("div",{class:"msg warn"},[el("ul",{},e.map(function(x){return el("li",{text:x});}))])); btn.disabled=!!e.length; }
+  ps.addEventListener("input",upd); checks.forEach(function(l){ l.firstChild.addEventListener("change",upd); });
+  btn.addEventListener("click",function(){
+    if(state().length) return;
+    S.subject={pseudonym:ps.value.trim(), checks:CONSENT_ITEMS.map(function(_,i){return i;}), excluded:Array.from(excluded), consentedAt:new Date().toISOString()};
+    save(); audit("consent.recorded", S.subject.pseudonym+(excluded.size?" · excluded: "+Array.from(excluded).join(", "):"")).then(function(){ toast("Consent recorded"); go("record"); });
+  });
+  v.appendChild(el("div",{class:"grid2"},[
+    el("div",{class:"card"},[el("h3",{text:"Consent statements"}), el("div",{class:"checks"},checks)]),
+    el("div",{class:"card"},[el("label",{class:"f",for:"c-ps"},["Subject pseudonym",ps]),
+      el("div",{},[el("h3",{text:"Pre-test interview"}), el("p",{class:"muted",style:"margin-block:4px 10px",text:"Tap any item the subject already recognizes for an innocent reason. Targets aren't listed because they are taught."}), chipsBox])])
+  ]));
+  v.appendChild(el("div",{class:"card"},[status, el("div",{class:"row"},[btn])]));
+  if(sub.consentedAt) v.appendChild(el("div",{class:"msg good",text:"Consent recorded for "+sub.pseudonym+" at "+fmtDate(sub.consentedAt)+". Changing anything here records it again."}));
+  setTimeout(upd);
+  return v;
+}
+
+// ---------------- 3. record ----------------
+var recOpts={source:"sim", pace:"demo", responder:"sim", knows:"yes", p300:8, noise:10, blink:3, fs:250, pre:200};
+function viewRecord(){
+  var v=el("section",{class:"view"}), p=S.protocol;
+  v.appendChild(el("div",{class:"view-head"},[el("div",{},[el("span",{class:"label",text:"Step 3"}),el("h2",{text:"Record the session"}),
+    el("p",{class:"lede",text:"The subject watches the screen and presses the Target button (or Space) whenever a target appears. No result is shown until the recording ends, so the examiner can't steer the session."})])]));
+  if(!p.locked || !S.subject || !S.subject.consentedAt){
+    v.appendChild(el("div",{class:"msg warn"},[!p.locked?"Lock the protocol first. ":"Record the subject's consent first. ", el("button",{class:"btn ghost",text:!p.locked?"Go to protocol":"Go to consent",onclick:function(){go(!p.locked?"protocol":"consent");}})]));
+    return v;
+  }
+  var active = run && run.active;
+  function radio(name, val, text){ var i=el("input",{type:"radio",name:name,value:val,disabled:active}); i.checked=recOpts[name]===val; i.addEventListener("change",function(){recOpts[name]=val; render();}); return el("label",{},[i,text]); }
+  function num(key,min,max,step,label,hint){ var i=el("input",{type:"number",id:"r-"+key,min:min,max:max,step:step,value:recOpts[key],disabled:active}); i.addEventListener("input",function(){recOpts[key]=+i.value;}); return el("label",{class:"f",for:"r-"+key},[label,hint?el("small",{text:hint}):null,i]); }
+
+  var setup=el("div",{class:"card"},[
+    el("h3",{text:"Data source"}),
+    el("div",{class:"seg"},[radio("source","sim","Simulated headset"), radio("source","csv","Import epoched CSV")])
+  ]);
+  if(recOpts.source==="sim"){
+    var knows=el("div",{class:"seg"},[radio("knows","yes","Knows the probe"), radio("knows","no","Doesn't know it")]);
+    setup.appendChild(el("p",{class:"muted",text:"Browsers can't connect to EEG hardware from this page, so the headset is simulated. The simulated subject's knowledge is hidden from the report until the end, where it's shown as the ground truth."}));
+    setup.appendChild(el("div",{},[el("span",{class:"label",text:"Simulated subject"}),el("div",{style:"margin-top:6px"},[knows])]));
+    setup.appendChild(el("div",{class:"fields3"},[num("p300",0,20,0.5,"P300 size (µV)"), num("noise",2,30,1,"Noise (µV)"), num("blink",0,50,1,"Blink rate (%)")]));
+    setup.appendChild(el("div",{},[el("span",{class:"label",text:"Pace"}),el("div",{style:"margin-top:6px"},[el("div",{class:"seg"},[radio("pace","clinical","Standard 3.0 s"), radio("pace","demo","Demo 0.35 s"), radio("pace","instant","Instant")])])]));
+    setup.appendChild(el("div",{},[el("span",{class:"label",text:"Target responses"}),el("div",{style:"margin-top:6px"},[el("div",{class:"seg"},[radio("responder","sim","Simulated"), radio("responder","live","Live keypress")])])]));
+  } else {
+    var file=el("input",{type:"file",id:"r-file",accept:".csv,text/csv"});
+    var fmt=el("div",{class:"muted",style:"font-size:.88rem"},[
+      "One row per trial: ", el("span",{class:"mono",text:"class,stimulus,v1,v2,…"}),
+      ". Class is probe, target or irrelevant. Values are µV at channel Pz, one epoch per row, all the same length. A header row is optional."]);
+    setup.appendChild(fmt);
+    setup.appendChild(el("div",{class:"fields2"},[num("fs",100,2000,1,"Sampling rate (Hz)"), num("pre",0,500,1,"Pre-stimulus baseline (ms)")]));
+    setup.appendChild(el("label",{class:"f",for:"r-file"},["Recording file",file]));
+    if(downloadsNs) setup.appendChild(el("div",{},[el("button",{class:"btn quiet",type:"button",text:"Save a sample CSV",onclick:function(){offerFile("brainlock-sample-epochs.csv", sampleCsv());}})]));
+    file.addEventListener("change",function(){
+      var f=file.files[0]; if(!f) return;
+      var rd=new FileReader(); rd.onload=function(){ importCsv(String(rd.result), f.name); }; rd.readAsText(f);
+    });
+  }
+
+  var stage=el("div",{class:"stage",id:"stage",tabindex:"0","aria-label":"Subject screen"});
+  var controls=el("div",{class:"row"});
+  if(recOpts.source==="sim"){
+    if(!active){
+      controls.appendChild(el("button",{class:"btn",text:"Start recording",onclick:startRun}));
+      stage.appendChild(el("div",{class:"idle"},[el("div",{class:"fix",text:"+"}), el("div",{text:"Ready. Subject "+S.subject.pseudonym+", "+sessionSeq().length+" trials."}), el("div",{style:"font-size:.85rem;color:#9AA39F",text:"Press Target or Space when a target word appears."})]));
+    } else {
+      controls.appendChild(el("button",{class:"btn ghost",text:run.paused?"Resume":"Pause",onclick:function(){ run.paused=!run.paused; if(!run.paused) tick(); render(); }}));
+      controls.appendChild(el("button",{class:"btn danger",text:"Stop session",onclick:function(){ stopRun(); }}));
+    }
+    controls.appendChild(el("button",{class:"btn quiet",text:"Target (Space)",onclick:function(){ respond(); }}));
+    controls.appendChild(el("button",{class:"btn quiet",text:"Full screen",onclick:function(){ var s=$("#stage"); if(s.requestFullscreen) s.requestFullscreen().catch(function(){toast("Full screen isn't available here.");}); }}));
+  } else {
+    stage.appendChild(el("div",{class:"idle"},[el("div",{text:"Imported recordings skip presentation."}),el("div",{style:"font-size:.85rem;color:#9AA39F",text:"Choose a file to analyze it."})]));
+  }
+
+  var counters=el("div",{class:"counters",id:"counters"});
+  v.appendChild(el("div",{class:"grid2"},[el("div",{class:"card"},[stage, controls, counters]), setup]));
+  setTimeout(updateCounters);
+  return v;
+}
+
+function sessionSeq(){
+  var p=S.protocol, ex=new Set(S.subject.excluded||[]);
+  var q={probes:p.probes.filter(function(t){return !ex.has(t);}), targets:p.targets, irrelevants:p.irrelevants.filter(function(t){return !ex.has(t);}), repetitions:p.repetitions};
+  return BP.buildSequence(q, run && run.seed || 1);
+}
+function startRun(){
+  var seed=(Date.now()%2147483647)>>>0;
+  run={active:true, paused:false, seed:seed, i:0, epochs:[], labels:[], words:[], ptp:[], targetsShown:0, hits:0, falseAlarms:0, awaiting:null,
+    sim:{knowsProbe:recOpts.knows==="yes", p300Uv:recOpts.p300, noiseUv:recOpts.noise, blinkRate:recOpts.blink/100},
+    pace:recOpts.pace, responder:recOpts.responder, r:BP.rng(seed*7919+1), times:BP.timeAxis(O)};
+  run.seq=sessionSeq();
+  audit("recording.started", S.subject.pseudonym+" · "+run.seq.length+" trials · seed "+seed);
+  render();
+  if(run.pace==="instant"){ while(run.i<run.seq.length) presentTrial(true); finishRun(); }
+  else tick();
+}
+function paceMs(){ return run.pace==="clinical" ? {on:S.protocol.stimulusMs||300, isi:S.protocol.isiMs||3000} : {on:180, isi:350}; }
+function presentTrial(silent){
+  var st=run.seq[run.i];
+  var e=BP.simulateEpoch(st.kind, run.sim, O, run.r, run.times);
+  run.epochs.push(e); run.labels.push(st.kind); run.words.push(st.text);
+  var lo=Infinity,hi=-Infinity; e.forEach(function(x){ if(x<lo)lo=x; if(x>hi)hi=x; }); run.ptp.push(hi-lo);
+  if(st.kind==="target"){ run.targetsShown++; if(run.responder==="sim" && run.r()<0.95) run.hits++; }
+  run.awaiting = st.kind==="target" && run.responder==="live" ? "target" : "other";
+  run.i++;
+  if(!silent){
+    var s=$("#stage"); if(s){ s.innerHTML=""; s.appendChild(el("div",{class:"word",text:st.text})); s.appendChild(el("div",{class:"overlay"},[el("span",{text:"Trial "+run.i+" / "+run.seq.length}), el("span",{text:S.subject.pseudonym})])); }
+    updateCounters();
+  }
+}
+function tick(){
+  if(!run || !run.active || run.paused) return;
+  if(run.i>=run.seq.length){ finishRun(); return; }
+  presentTrial(false);
+  var pm=paceMs();
+  run.timer=setTimeout(function(){
+    var s=$("#stage"); if(s){ s.innerHTML=""; s.appendChild(el("div",{class:"fix",text:"+"})); }
+    run.timer=setTimeout(tick, pm.isi-pm.on);
+  }, pm.on);
+}
+function respond(){
+  if(!run || !run.active) return;
+  if(run.responder!=="live") return;
+  if(run.awaiting==="target"){ run.hits++; run.awaiting="done"; } else if(run.awaiting==="other"){ run.falseAlarms++; run.awaiting="done"; }
+  updateCounters();
+}
+document.addEventListener("keydown",function(e){ if(e.code==="Space" && run && run.active && S.view==="record"){ e.preventDefault(); respond(); } });
+function stopRun(){
+  clearTimeout(run.timer); run.active=false;
+  var sess=baseSession(); sess.verdict="stopped"; sess.result={verdict:"stopped", nTrials:{}};
+  sess.trialsPresented=run.i;
+  S.sessions.unshift(sess); S.reportId=sess.id; save();
+  audit("recording.stopped", sess.id+" after "+run.i+" trials").then(function(){ run=null; go("report"); });
+}
+function updateCounters(){
+  var box=$("#counters"); if(!box) return; box.innerHTML="";
+  var total = run ? run.seq.length : (S.protocol.locked && S.subject ? sessionSeq().length : 0), i = run ? run.i : 0;
+  var c={probe:0,target:0,irrelevant:0}; if(run) run.labels.forEach(function(l){c[l]++;});
+  box.appendChild(el("div",{class:"counter"},[el("span",{class:"label",text:"Progress"}), el("b",{class:"num",text:i+" / "+total}), el("div",{class:"bar"},[el("i",{style:"width:"+(total?i/total*100:0)+"%"})])]));
+  ["probe","target","irrelevant"].forEach(function(k){ box.appendChild(el("div",{class:"counter"},[el("span",{class:"label",text:KIND_LABEL[k]+" trials"}), el("b",{class:"num",text:String(c[k])})])); });
+  var last = run && run.ptp.length ? run.ptp[run.ptp.length-1] : null;
+  var sq = last==null ? el("div",{class:"sq"},[el("span",{class:"dot"}),"Signal: waiting"]) :
+    last<O.rejectUv ? el("div",{class:"sq ok"},[el("span",{class:"dot"}),"Signal: clean ("+Math.round(last)+" µV p-p)"]) :
+    el("div",{class:"sq art"},[el("span",{class:"dot"}),"Artifact: last trial will be rejected"]);
+  box.appendChild(el("div",{style:"grid-column:1/-1"},[sq]));
+}
+function baseSession(){
+  var p=S.protocol;
+  return {id:uid(), createdAt:new Date().toISOString(), subject:S.subject.pseudonym, excluded:(S.subject.excluded||[]).slice(),
+    protocol:{name:p.name, version:p.version, hash:p.hash, presentThreshold:p.presentThreshold, absentThreshold:p.absentThreshold},
+    source: run ? "simulated" : "imported", notes:[]};
+}
+function analyseAndSave(epochs, labels, times, extra){
+  var main=$("#main"); main.innerHTML=""; main.appendChild(el("div",{class:"card"},[el("h3",{text:"Analyzing…"}),el("p",{class:"muted",text:"Filtering, rejecting artifacts and running 1,000 bootstrap iterations for each test."})]));
+  setTimeout(function(){
+    var po=Object.assign({}, O, extra.opts);
+    var pre=BP.preprocess(epochs, times, po);
+    var kept=labels.filter(function(_,i){return pre.keep[i];});
+    var res=BP.analyse(pre.clean, kept, times, Object.assign({}, extra.opts, {presentThreshold:S.protocol.presentThreshold, absentThreshold:S.protocol.absentThreshold, seed:extra.seed||7}));
+    var sess=Object.assign(baseSession(), extra.session);
+    sess.verdict=res.verdict;
+    sess.result={verdict:res.verdict, reason:res.reason||null, correlationSupport:res.correlationSupport, amplitudeSupport:res.amplitudeSupport,
+      nTrials:res.nTrials, rejected:pre.keep.filter(function(k){return !k;}).length, total:labels.length, nBoot:res.nBoot, version:BP.VERSION,
+      windows:res.windows, times:times.filter(function(_,i){return i%2===0;}),
+      erp: res.erp ? {probe:round2(res.erp.probe.filter(function(_,i){return i%2===0;})), target:round2(res.erp.target.filter(function(_,i){return i%2===0;})), irrelevant:round2(res.erp.irrelevant.filter(function(_,i){return i%2===0;}))} : null,
+      ampDiffs: res.ampDiffs ? round2(res.ampDiffs.filter(function(_,i){return i%4===0;})) : null};
+    S.sessions.unshift(sess); S.reportId=sess.id; save();
+    audit("analysis.completed", sess.id+" · "+res.verdict+" · engine "+BP.VERSION).then(function(){ run=null; go("report"); });
+  }, 30);
+}
+function finishRun(){
+  run.active=false; clearTimeout(run.timer);
+  analyseAndSave(run.epochs, run.labels, run.times, {seed:run.seed, opts:{},
+    session:{source:"simulated", seed:run.seed, sim:run.sim, attention:{shown:run.targetsShown, hits:run.hits, falseAlarms:run.falseAlarms, mode:run.responder}}});
+}
+function importCsv(text, filename){
+  var parsed=BP.parseEpochCsv(text);
+  if(parsed.errors.length){ toast(parsed.errors[0]); return; }
+  var o={fs:recOpts.fs, epochPreMs:recOpts.pre};
+  var dt=1000/o.fs, times=[]; for(var i=0;i<parsed.samples;i++) times.push(-o.epochPreMs+i*dt);
+  if(!times.some(function(t){return t<0;})){ toast("The recording needs a pre-stimulus baseline. Set the baseline above 0 ms."); return; }
+  if(times[times.length-1]<700){ toast("Epochs are too short. They must run to at least 700 ms after the stimulus."); return; }
+  run=null;
+  audit("recording.imported", filename+" · "+parsed.epochs.length+" trials");
+  analyseAndSave(parsed.epochs, parsed.labels, times, {opts:{fs:o.fs}, session:{source:"imported", file:filename, attention:null}});
+}
+function sampleCsv(){
+  var r=BP.rng(42), times=BP.timeAxis(O), p=S.protocol, rows=["class,stimulus,"+times.map(function(t){return "t"+Math.round(t);}).join(",")];
+  var seq=BP.buildSequence({probes:p.probes,targets:p.targets,irrelevants:p.irrelevants,repetitions:p.repetitions},42);
+  seq.forEach(function(st){ rows.push(st.kind+","+st.text.replace(/,/g," ")+","+BP.simulateEpoch(st.kind,{knowsProbe:true,p300Uv:8,noiseUv:10,blinkRate:0.02},O,r,times).map(function(v){return v.toFixed(2);}).join(",")); });
+  return rows.join("\n");
+}
+
+// ---------------- 4. report ----------------
+function erpChart(res){
+  var W=640,H=300,L=46,R=14,T=16,B=34, t=res.times, all=res.erp.probe.concat(res.erp.target,res.erp.irrelevant);
+  var lo=Math.min.apply(null,all), hi=Math.max.apply(null,all), step=hi-lo>24?8:4;
+  lo=Math.floor(Math.min(lo,-2)/step)*step; hi=Math.ceil(Math.max(hi,4)/step)*step;
+  function x(v){return L+(v-t[0])/(t[t.length-1]-t[0])*(W-L-R);} function y(v){return T+(hi-v)/(hi-lo)*(H-T-B);}
+  var s='<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Averaged brain responses for probe, target and irrelevant stimuli">';
+  for(var tv=-200; tv<=t[t.length-1]; tv+=200){ s+='<line class="gl" x1="'+x(tv)+'" x2="'+x(tv)+'" y1="'+T+'" y2="'+(H-B)+'"/><text class="ax" x="'+x(tv)+'" y="'+(H-B+18)+'" text-anchor="middle">'+tv+'</text>'; }
+  for(var yv=lo; yv<=hi; yv+=step){ s+='<line class="'+(yv===0?"zero":"gl")+'" x1="'+L+'" x2="'+(W-R)+'" y1="'+y(yv)+'" y2="'+y(yv)+'"/><text class="ax" x="'+(L-8)+'" y="'+(y(yv)+4)+'" text-anchor="end">'+yv+'</text>'; }
+  var w=res.windows.corr; s+='<rect class="win" x="'+x(w[0])+'" y="'+T+'" width="'+(x(w[1])-x(w[0]))+'" height="'+(H-T-B)+'"/><text class="wl" x="'+(x(w[0])+5)+'" y="'+(T+13)+'">analysis window</text>';
+  s+='<line class="onset" x1="'+x(0)+'" x2="'+x(0)+'" y1="'+T+'" y2="'+(H-B)+'"/>';
+  s+='<text class="ax" x="'+(W-R)+'" y="'+(H-4)+'" text-anchor="end">ms after stimulus</text><text class="ax" x="4" y="'+(T+4)+'">µV</text>';
+  ["irrelevant","target","probe"].forEach(function(k){ var d=res.erp[k].map(function(v,i){return (i?"L":"M")+x(t[i]).toFixed(1)+" "+y(v).toFixed(1);}).join(""); s+='<path class="t-'+k+'" d="'+d+'"/>'; });
+  return s+"</svg>";
+}
+function supportChart(res){
+  var W=400,H=128,L=112,R=44, pt=res.presentT, at=res.absentT;
+  function x(v){return L+v*(W-L-R);}
+  var s='<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Bootstrap support for each test compared with the thresholds">';
+  [["Correlation test",res.correlationSupport,18],["Amplitude test",res.amplitudeSupport,62]].forEach(function(r){
+    var yy=r[2];
+    s+='<text class="sb-lbl" x="0" y="'+(yy+15)+'">'+r[0]+'</text>';
+    s+='<rect class="sb-track" x="'+L+'" y="'+yy+'" width="'+(W-L-R)+'" height="22" rx="3"/>';
+    s+='<rect class="zone-absent" x="'+L+'" y="'+yy+'" width="'+(x(at)-L)+'" height="22"/>';
+    s+='<rect class="zone-present" x="'+x(pt)+'" y="'+yy+'" width="'+(x(1)-x(pt))+'" height="22"/>';
+    s+='<rect class="sb-fill" x="'+L+'" y="'+(yy+8)+'" width="'+Math.max(2,x(r[1])-L)+'" height="6" rx="3"/>';
+    s+='<text class="sb-val" x="'+(W-R+8)+'" y="'+(yy+15)+'">'+pct(r[1])+'</text>';
+  });
+  [[at,"absent ≤ "+pct(at)],[pt,"present ≥ "+pct(pt)]].forEach(function(th){
+    s+='<line class="sb-th" x1="'+x(th[0])+'" x2="'+x(th[0])+'" y1="10" y2="92"/><text class="ax" x="'+x(th[0])+'" y="112" text-anchor="middle">'+th[1]+'</text>';
+  });
+  return s+"</svg>";
+}
+function summaryText(s){
+  var r=s.result, v=VERDICT[s.verdict];
+  var out=["BrainLock session "+s.id, "Date: "+fmtDate(s.createdAt), "Subject: "+s.subject, "Protocol: "+s.protocol.name+" v"+s.protocol.version+" ("+s.protocol.hash+")",
+    "Data: "+(s.source==="simulated"?"SIMULATED":"imported file "+s.file), "Verdict: "+v.chip+". "+v.text];
+  if(r.correlationSupport!=null) out.push("Correlation support: "+pct(r.correlationSupport)+" · Amplitude support: "+pct(r.amplitudeSupport)+" · thresholds "+pct(s.protocol.absentThreshold)+"/"+pct(s.protocol.presentThreshold));
+  if(r.nTrials && r.total) out.push("Clean trials: probe "+r.nTrials.probe+", target "+r.nTrials.target+", irrelevant "+r.nTrials.irrelevant+" · rejected "+r.rejected+" of "+r.total);
+  out.push("Engine: "+(r.version||BP.VERSION));
+  out.push("Limits: detects recognition of specific details only; not a lie detector; not validated for legal or employment decisions.");
+  return out.join("\n");
+}
+function viewReport(){
+  var v=el("section",{class:"view"});
+  var s=S.sessions.filter(function(x){return x.id===S.reportId;})[0] || S.sessions[0];
+  if(!s){ v.appendChild(el("div",{class:"card empty"},[el("p",{text:"No sessions yet."}), el("div",{class:"row",style:"justify-content:center;margin-top:10px"},[el("button",{class:"btn",text:"Start with the protocol",onclick:function(){go("protocol");}})])])); return v; }
+  var r=s.result, vd=VERDICT[s.verdict];
+  v.appendChild(el("div",{class:"view-head"},[
+    el("div",{},[el("span",{class:"label",text:"Step 4 · Report "+s.id}), el("h2",{text:"Session report for "+s.subject}),
+      el("p",{class:"lede",text:fmtDate(s.createdAt)+" · "+s.protocol.name+" v"+s.protocol.version})]),
+    el("div",{class:"row"},[
+      el("button",{class:"btn ghost",text:"Copy summary",onclick:function(){copyText(summaryText(s));}}),
+      downloadsNs ? el("button",{class:"btn ghost",text:"Save report (JSON)",onclick:function(){offerFile("brainlock-"+s.id+".json", JSON.stringify(s,null,2));}}) : null,
+      el("button",{class:"btn",text:"Start a new test",onclick:function(){ go(S.protocol.locked?"consent":"protocol"); }})
+    ])
+  ]));
+  if(s.example) v.appendChild(el("div",{class:"msg warn",text:"This is an example session generated with simulated data, so you can see what a report looks like. Start a new test to run your own."}));
+  var vcard=el("div",{class:"verdict"},[el("span",{class:"vchip v-"+s.verdict,text:vd.chip}), el("h3",{text:vd.text}),
+    el("p",{class:"muted",text: r.reason ? r.reason : (s.source==="simulated" && s.sim ? "Ground truth for this simulation: the subject "+(s.sim.knowsProbe?"knew":"did not know")+" the probe." : "Imported recording: "+s.file)})]);
+  v.appendChild(vcard);
+  if(s.source==="simulated") v.appendChild(el("span",{class:"sim-banner",text:"Simulated data · not a real recording"}));
+
+  if(r.correlationSupport!=null){
+    var att=s.attention, attText="—", attSmall="Not recorded for imports";
+    if(att && att.shown){ attText=pct(att.hits/att.shown); attSmall=att.hits+" of "+att.shown+" targets"+(att.mode==="sim"?" (simulated)":"")+(att.falseAlarms?" · "+att.falseAlarms+" false presses":""); }
+    v.appendChild(el("div",{class:"stats"},[
+      el("div",{class:"stat"},[el("span",{class:"label",text:"Correlation test"}),el("b",{class:"num",text:pct(r.correlationSupport)}),el("small",{text:"Probe resembled target more than irrelevants"})]),
+      el("div",{class:"stat"},[el("span",{class:"label",text:"Amplitude test"}),el("b",{class:"num",text:pct(r.amplitudeSupport)}),el("small",{text:"Probe response larger than irrelevants"})]),
+      el("div",{class:"stat"},[el("span",{class:"label",text:"Clean trials"}),el("b",{class:"num",text:(r.total-r.rejected)+" / "+r.total}),el("small",{text:"P "+r.nTrials.probe+" · T "+r.nTrials.target+" · I "+r.nTrials.irrelevant})]),
+      el("div",{class:"stat"},[el("span",{class:"label",text:"Attention check"}),el("b",{class:"num",text:attText}),el("small",{text:attSmall})])
+    ]));
+    if(att && att.shown && att.hits/att.shown<0.8) v.appendChild(el("div",{class:"msg warn",text:"The subject responded to fewer than 80% of targets. They may not have been attending, which weakens any conclusion."}));
+    var charts=el("div",{class:"grid2"});
+    var erpCard=el("div",{class:"card chart"},[el("h3",{text:"Averaged responses at Pz"}), el("div",{html:erpChart(r)}),
+      el("div",{class:"legend"},[el("span",{},[el("i",{style:"background:var(--probe)"}),"Probe"]),el("span",{},[el("i",{style:"background:var(--target)"}),"Target"]),el("span",{},[el("i",{style:"background:var(--irr)"}),"Irrelevant"])])]);
+    var supCard=el("div",{class:"card chart"},[el("h3",{text:"How often each test agreed"}),
+      el("div",{html:supportChart({correlationSupport:r.correlationSupport, amplitudeSupport:r.amplitudeSupport, presentT:s.protocol.presentThreshold, absentT:s.protocol.absentThreshold})}),
+      el("p",{class:"muted",style:"font-size:.88rem",text:"Each bar shows the share of "+r.nBoot+" resampled averages that favored recognition. \"Information present\" needs both bars in the red zone and \"absent\" needs both in the green zone. Anything else is indeterminate."})]);
+    charts.appendChild(erpCard); charts.appendChild(supCard); v.appendChild(charts);
+  } else if(s.verdict==="stopped"){
+    v.appendChild(el("div",{class:"card"},[el("p",{text:"Stopped after "+(s.trialsPresented||0)+" trials. The partial recording was discarded."})]));
+  }
+
+  var details=el("dl",{class:"kv"},[
+    el("dt",{text:"Protocol hash"}),el("dd",{text:s.protocol.hash||"—"}),
+    el("dt",{text:"Engine"}),el("dd",{text:(r.version||BP.VERSION)}),
+    el("dt",{text:"Data"}),el("dd",{text:s.source==="simulated"?"Simulated · seed "+s.seed+" · P300 "+s.sim.p300Uv+" µV · noise "+s.sim.noiseUv+" µV · blinks "+Math.round(s.sim.blinkRate*100)+"%":"Imported · "+s.file}),
+    el("dt",{text:"Excluded items"}),el("dd",{text:s.excluded.length?s.excluded.join(", "):"None"}),
+    el("dt",{text:"Thresholds"}),el("dd",{text:"present ≥ "+pct(s.protocol.presentThreshold)+" · absent ≤ "+pct(s.protocol.absentThreshold)})
+  ]);
+  var limits=el("ul",{class:"limits"},[
+    el("li",{text:"This test detects whether specific details were recognized. It does not detect lies, guilt or intent."}),
+    el("li",{text:"A subject can recognize a probe innocently, from the media, rumor or questioning. Probe provenance decides what a result means."}),
+    el("li",{text:"In simulation the method raises a false \"present\" for roughly 1 in 100 subjects who lack the knowledge. Real-world error rates have not been measured."}),
+    el("li",{text:"This software is for research. It is not validated for legal, forensic or employment decisions."})
+  ]);
+  var noteIn=el("textarea",{id:"note-in",placeholder:"Add an examiner note. Notes can't change the verdict.",style:"min-height:70px;font-family:var(--body)"});
+  var notes=el("div",{class:"notes"}, (s.notes||[]).map(function(n){ return el("div",{class:"note"},[el("small",{text:fmtDate(n.ts)}), el("p",{text:n.text})]); }));
+  var addNote=el("button",{class:"btn ghost",text:"Add note",onclick:function(){
+    var t=noteIn.value.trim(); if(!t) return;
+    s.notes=(s.notes||[]).concat([{ts:new Date().toISOString(), text:t}]); save(); audit("report.note_added", s.id); render();
+  }});
+  v.appendChild(el("div",{class:"grid2"},[
+    el("div",{class:"card"},[el("h3",{text:"Examiner notes"}), notes, noteIn, el("div",{},[addNote])]),
+    el("div",{class:"card"},[el("h3",{text:"Session details"}), details, el("h3",{text:"Limitations"}), limits])
+  ]));
+  return v;
+}
+
+// ---------------- sessions ----------------
+function viewSessions(){
+  var v=el("section",{class:"view"});
+  v.appendChild(el("div",{class:"view-head"},[el("div",{},[el("h2",{text:"Sessions"}),el("p",{class:"lede",text:"Every session stays in this browser only. Deleting one removes its data and leaves a record in the audit log."})]),
+    downloadsNs && S.sessions.length ? el("div",{class:"row"},[
+      el("button",{class:"btn ghost",text:"Save all (CSV)",onclick:function(){ offerFile("brainlock-sessions.csv", sessionsCsv(S.sessions)); }}),
+      el("button",{class:"btn quiet",text:"Save all (JSON)",onclick:function(){ offerFile("brainlock-sessions.json", JSON.stringify({format:"brainlock.sessions/1", exportedAt:new Date().toISOString(), engine:BP.VERSION, sessions:S.sessions},null,2)); }})]) : null]));
+  if(!S.sessions.length){ v.appendChild(el("div",{class:"card empty",text:"No sessions yet."})); return v; }
+  var confirmId=null;
+  var tb=el("tbody");
+  function rows(){
+    tb.innerHTML="";
+    S.sessions.forEach(function(s){
+      var r=s.result||{};
+      var tr=el("tr",{class:"click",onclick:function(){ S.reportId=s.id; go("report"); }},[
+        el("td",{class:"mono"},[s.id, s.example?el("span",{class:"tag",text:"Example"}):null]),
+        el("td",{text:fmtDate(s.createdAt)}),
+        el("td",{text:s.subject}),
+        el("td",{text:s.protocol.name+" v"+s.protocol.version}),
+        el("td",{},[el("span",{class:"vchip v-"+s.verdict,text:VERDICT[s.verdict].chip})]),
+        el("td",{class:"mono",text:r.correlationSupport!=null?pct(r.correlationSupport)+" / "+pct(r.amplitudeSupport):"—"}),
+        el("td",{text:s.source==="simulated"?"Simulated":"Imported"}),
+        el("td",{},[ confirmId===s.id ?
+          el("span",{class:"row",style:"gap:6px;flex-wrap:nowrap"},[
+            el("button",{class:"btn danger",text:"Delete",onclick:function(e){ e.stopPropagation(); S.sessions=S.sessions.filter(function(x){return x.id!==s.id;}); if(S.reportId===s.id) S.reportId=null; save(); audit("session.deleted", s.id); confirmId=null; rows(); }}),
+            el("button",{class:"btn quiet",text:"Keep",onclick:function(e){ e.stopPropagation(); confirmId=null; rows(); }})]) :
+          el("button",{class:"btn quiet",text:"Delete…",onclick:function(e){ e.stopPropagation(); confirmId=s.id; rows(); }}) ])
+      ]);
+      tb.appendChild(tr);
+    });
+  }
+  rows();
+  v.appendChild(el("div",{class:"card tbl",style:"padding:0"},[el("table",{},[el("thead",{},[el("tr",{},["Session","Date","Subject","Protocol","Verdict","Corr / Amp","Data",""].map(function(h){return el("th",{text:h});}))]), tb])]));
+  return v;
+}
+
+// ---------------- audit ----------------
+function viewAudit(){
+  var v=el("section",{class:"view"}), status=el("div");
+  var verify=el("button",{class:"btn ghost",text:"Verify chain",onclick:function(){
+    var prev="genesis", i=0, chain=S.audit.slice();
+    (function step(){
+      if(i>=chain.length){ status.innerHTML=""; status.appendChild(el("div",{class:"msg good",text:"Chain intact: all "+chain.length+" entries link correctly."})); return; }
+      var ev=chain[i];
+      if(ev.prev!==prev){ bad(i); return; }
+      sha256(ev.prev+"|"+ev.ts+"|"+ev.action+"|"+ev.detail).then(function(h){ if(h!==ev.hash){ bad(i); return; } prev=ev.hash; i++; step(); });
+    })();
+    function bad(k){ status.innerHTML=""; status.appendChild(el("div",{class:"msg bad",text:"Chain broken at entry "+(k+1)+". The log was edited outside this app."})); }
+  }});
+  v.appendChild(el("div",{class:"view-head"},[el("div",{},[el("h2",{text:"Audit log"}),el("p",{class:"lede",text:"Each entry includes the hash of the one before it, so any later edit breaks the chain."})]), verify]));
+  v.appendChild(status);
+  var tb=el("tbody",{}, S.audit.slice().reverse().map(function(ev){ return el("tr",{},[el("td",{text:fmtDate(ev.ts)}), el("td",{text:ev.action}), el("td",{text:ev.detail}), el("td",{text:shortHash(ev.hash)})]); }));
+  v.appendChild(el("div",{class:"card tbl audit",style:"padding:0"},[S.audit.length?el("table",{},[el("thead",{},[el("tr",{},["Time","Action","Detail","Hash"].map(function(h){return el("th",{text:h});}))]), tb]):el("div",{class:"empty",text:"No entries yet."})]));
+  return v;
+}
+
+// ---------------- first run ----------------
+function seedExample(){
+  var p=exampleProtocol();
+  return sha256(canon(p)).then(function(h){
+    var seed=20260925, r=BP.rng(seed*7919+1), times=BP.timeAxis(O);
+    var seq=BP.buildSequence(p, seed), sim={knowsProbe:true,p300Uv:8,noiseUv:10,blinkRate:0.03};
+    var epochs=seq.map(function(st){return BP.simulateEpoch(st.kind,sim,O,r,times);});
+    var pre=BP.preprocess(epochs,times,O), kept=seq.map(function(x){return x.kind;}).filter(function(_,i){return pre.keep[i];});
+    var res=BP.analyse(pre.clean,kept,times,{seed:seed});
+    var ev=function(a){return a.filter(function(_,i){return i%2===0;});};
+    var sess={id:"EX-0001", example:true, createdAt:new Date().toISOString(), subject:"S-000 (example)", excluded:[],
+      protocol:{name:p.name, version:1, hash:h, presentThreshold:0.9, absentThreshold:0.3}, source:"simulated", seed:seed, sim:sim, notes:[],
+      attention:{shown:180/6, hits:29, falseAlarms:0, mode:"sim"}, verdict:res.verdict,
+      result:{verdict:res.verdict, correlationSupport:res.correlationSupport, amplitudeSupport:res.amplitudeSupport, nTrials:res.nTrials,
+        rejected:pre.keep.filter(function(k){return !k;}).length, total:seq.length, nBoot:res.nBoot, version:BP.VERSION, windows:res.windows,
+        times:ev(times), erp:{probe:round2(ev(res.erp.probe)), target:round2(ev(res.erp.target)), irrelevant:round2(ev(res.erp.irrelevant))}}};
+    S.sessions.push(sess); S.reportId=sess.id; S.seeded=true; save();
+    return audit("example.generated", sess.id+" · simulated · "+res.verdict);
+  });
+}
+render();
+if(!S.seeded) seedExample().then(render);
+})();
+</script>

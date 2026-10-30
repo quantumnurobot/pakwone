@@ -1,0 +1,58 @@
+{
+  "format": "brainlock.protocol/1",
+  "status": "planned - no participants tested and no EEG recorded yet",
+  "name": "Validation pilot - staged theft (example stimuli)",
+  "version": 1,
+  "probes": ["gold watch", "filing cabinet", "blue envelope", "Room 214", "Hartley", "desk lamp"],
+  "targets": ["silver ring", "coat closet", "red folder", "Room 108", "Morrison", "wall clock"],
+  "irrelevants": [
+    "leather wallet", "car keys", "phone charger", "sunglasses",
+    "desk drawer", "bookshelf", "trash bin", "window ledge",
+    "green box", "white bag", "brown sleeve", "black pouch",
+    "Room 305", "Room 112", "Room 220", "Room 317",
+    "Bennett", "Calloway", "Dunmore", "Fairbanks",
+    "plant pot", "coffee mug", "stapler", "picture frame"
+  ],
+  "categories": [
+    {"category": "Item taken", "probe": "gold watch", "target": "silver ring", "irrelevants": ["leather wallet", "car keys", "phone charger", "sunglasses"]},
+    {"category": "Where it was kept", "probe": "filing cabinet", "target": "coat closet", "irrelevants": ["desk drawer", "bookshelf", "trash bin", "window ledge"]},
+    {"category": "What it was in", "probe": "blue envelope", "target": "red folder", "irrelevants": ["green box", "white bag", "brown sleeve", "black pouch"]},
+    {"category": "Room", "probe": "Room 214", "target": "Room 108", "irrelevants": ["Room 305", "Room 112", "Room 220", "Room 317"]},
+    {"category": "Name on the label", "probe": "Hartley", "target": "Morrison", "irrelevants": ["Bennett", "Calloway", "Dunmore", "Fairbanks"]},
+    {"category": "Object moved", "probe": "desk lamp", "target": "wall clock", "irrelevants": ["plant pot", "coffee mug", "stapler", "picture frame"]}
+  ],
+  "provenance": "Example stimuli for the staged-theft scenario in the BrainLock Validation Pilot Plan. The lab's stimulus author replaces these with the real scenario details before pre-registration and keeps the real probes away from examiners and participants. Probes are known only to knowledgeable-group participants through the staged theft itself.",
+  "repetitions": 10,
+  "stimulusMs": 300,
+  "isiMs": 3000,
+  "presentThreshold": 0.9,
+  "absentThreshold": 0.3,
+  "analysis": {
+    "engine": "brainprint-js 0.1.0",
+    "primary": "dual bootstrap (correlation 300-900 ms, amplitude 300-700 ms), 1000 iterations",
+    "secondary": "Dr. Farwell's analysis method, only if provided in writing",
+    "verdicts": ["information_present", "information_absent", "indeterminate"]
+  },
+  "study": {
+    "title": "BrainLock Validation Pilot",
+    "plan": "https://claude.ai/code/artifact/f866f67f-9335-402f-a427-1b99206838b5",
+    "durationMonths": 12,
+    "budgetUsd": 129500,
+    "participantsPerArm": 40,
+    "practiceParticipants": 10,
+    "arms": [
+      {"id": "knowledgeable", "description": "Carries out the staged theft; knows the six probe details"},
+      {"id": "naive", "description": "Does an unrelated task of the same length; never learns the probe details"},
+      {"id": "countermeasure", "description": "Staged theft, then trained in covert responses to chosen irrelevants (Rosenfeld et al., 2004)"}
+    ],
+    "blinding": "Examiner and analyst do not know arm assignment; the lab keeps the assignment key",
+    "recording": {"channels": ["Fz", "Cz", "Pz", "EOG"], "sampleRateHz": 500, "maxImpedanceKohm": 10, "maxOnsetJitterMs": 5, "format": "BIDS"},
+    "successCriteria": [
+      {"measure": "False-alarm rate", "target": "5% or less of naive participants called present, upper 95% confidence limit 10% or less"},
+      {"measure": "Detection rate", "target": "80% or more of knowledgeable sessions with a verdict called present"},
+      {"measure": "Indeterminate rate", "target": "20% or less in each group"},
+      {"measure": "Countermeasure effect", "target": "Reported as measured"},
+      {"measure": "Attention", "target": "Sessions with under 80% target responses flagged and analyzed both ways"}
+    ]
+  }
+}

@@ -1,0 +1,524 @@
+<title>Spark by BrainLock</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,600;1,9..144,600;1,9..144,800&family=Figtree:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root{
+  --bg:#FBF6F9; --card:#FFFFFF; --sunk:#F3EAF0; --ink:#24121F; --muted:#76626F; --line:#EADCE5;
+  --accent:#D6336C; --accent-ink:#FFFFFF; --accent-soft:#FCE4EC; --neural:#1F7A7A; --neural-soft:#DDF1F0;
+  --good:#1E7B4C; --warn:#8A5A00; --warn-soft:#FFF1D9; --bad:#B4232C;
+  --display:"Fraunces",Georgia,serif; --body:"Figtree","Segoe UI",system-ui,sans-serif; --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#140B12; --card:#1F131C; --sunk:#190F17; --ink:#F4E8F0; --muted:#B39FAC; --line:#33222E;
+    --accent:#FF5C93; --accent-ink:#1A0610; --accent-soft:#3A1526; --neural:#4FC4C0; --neural-soft:#112A2A;
+    --good:#6FD7A0; --warn:#F2C47A; --warn-soft:#2B2110; --bad:#FF7B83;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#140B12; --card:#1F131C; --sunk:#190F17; --ink:#F4E8F0; --muted:#B39FAC; --line:#33222E;
+  --accent:#FF5C93; --accent-ink:#1A0610; --accent-soft:#3A1526; --neural:#4FC4C0; --neural-soft:#112A2A;
+  --good:#6FD7A0; --warn:#F2C47A; --warn-soft:#2B2110; --bad:#FF7B83;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:15px/1.5 var(--body);padding-inline:16px}
+.app{max-width:460px;margin-inline:auto;padding-block:0 calc(92px + env(safe-area-inset-bottom,0px))}
+h1,h2,h3{margin:0;line-height:1.15;text-wrap:balance}
+h2{font:600 1.6rem/1.15 var(--display)}
+h3{font:600 1.05rem/1.3 var(--body)}
+p{margin:0}
+.muted{color:var(--muted)} .mono{font-family:var(--mono)} .num{font-variant-numeric:tabular-nums}
+.label{font:500 .7rem/1.2 var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible{outline:3px solid var(--neural);outline-offset:2px}
+
+.bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);display:flex;justify-content:space-between;align-items:center;padding-block:14px 10px}
+.wordmark{font:italic 800 1.9rem/1 var(--display);color:var(--accent);letter-spacing:-.02em;display:flex;align-items:baseline;gap:8px}
+.wordmark small{font:500 .68rem/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-style:normal}
+.demo-pill{font:500 .7rem/1 var(--mono);padding:6px 8px;border-radius:999px;background:var(--warn-soft);color:var(--warn)}
+
+.view{display:grid;gap:16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px;display:grid;gap:14px}
+.btn{font:600 1rem/1 var(--body);padding:13px 18px;border-radius:999px;border:1.5px solid var(--accent);background:var(--accent);color:var(--accent-ink);cursor:pointer;display:inline-flex;justify-content:center;align-items:center;gap:8px}
+.btn.ghost{background:transparent;color:var(--accent)}
+.btn.neural{background:var(--neural);border-color:var(--neural);color:var(--card)}
+.btn.quiet{background:transparent;border-color:var(--line);color:var(--muted)}
+.btn.danger{background:transparent;border-color:var(--bad);color:var(--bad)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn.wide{width:100%}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.msg{padding:10px 12px;border-radius:12px;font-size:.9rem}
+.msg.warn{background:var(--warn-soft);color:var(--warn)} .msg.neural{background:var(--neural-soft);color:var(--neural)}
+
+/* profile card */
+.pcard{border-radius:22px;overflow:hidden;background:var(--card);border:1px solid var(--line)}
+.portrait{aspect-ratio:4/4.6;max-width:100%;position:relative;display:grid;place-items:center;color:#fff}
+.portrait .initials{font:italic 800 clamp(4rem,22vw,6.5rem)/1 var(--display);opacity:.92;text-shadow:0 2px 24px rgba(0,0,0,.18)}
+.portrait .who{position:absolute;left:16px;right:16px;bottom:14px;display:grid;gap:2px;text-shadow:0 1px 10px rgba(0,0,0,.35)}
+.portrait .who b{font:600 1.6rem/1.1 var(--display)}
+.portrait .who span{font-size:.9rem;opacity:.95}
+.spark-chip{position:absolute;top:12px;left:12px;font:600 .74rem/1 var(--mono);padding:7px 9px;border-radius:999px;background:rgba(255,255,255,.92);color:#11504F;display:flex;gap:6px;align-items:center}
+.spark-chip i{width:8px;height:8px;border-radius:50%;background:#1F7A7A}
+.pbody{padding:16px 18px;display:grid;gap:12px}
+.prompt .label{margin-bottom:4px}
+.prompt p{font:600 1.15rem/1.35 var(--display)}
+.tags{display:flex;flex-wrap:wrap;gap:6px}
+.tag{font-size:.8rem;padding:5px 9px;border-radius:999px;background:var(--sunk);color:var(--ink)}
+.tag.shared{background:var(--accent-soft);color:var(--accent);font-weight:600}
+.actions{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.mini-link{background:none;border:0;color:var(--muted);font:inherit;font-size:.82rem;text-decoration:underline;cursor:pointer;justify-self:start;padding:0}
+
+/* tabs */
+.tabs{position:fixed;left:0;right:0;bottom:0;z-index:6;background:var(--card);border-top:1px solid var(--line);padding:8px 12px calc(8px + env(safe-area-inset-bottom,0px))}
+.tabs-in{max-width:460px;margin-inline:auto;display:grid;grid-template-columns:repeat(4,1fr);gap:4px}
+.tabs button{background:none;border:0;color:var(--muted);font:600 .74rem/1.1 var(--body);display:grid;justify-items:center;gap:4px;padding:6px 2px;border-radius:12px;cursor:pointer;position:relative}
+.tabs svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.tabs button[aria-current="page"]{color:var(--accent)}
+.badge{position:absolute;top:2px;right:calc(50% - 20px);min-width:16px;height:16px;border-radius:8px;background:var(--accent);color:var(--accent-ink);font:700 .65rem/16px var(--body);padding:0 4px}
+
+/* forms */
+label.f{display:grid;gap:6px;font-weight:600;font-size:.92rem}
+label.f small{font-weight:400;color:var(--muted)}
+input[type=text],input[type=number],textarea{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:10px 12px;width:100%}
+textarea{min-height:80px;resize:vertical}
+.checks{display:grid;gap:10px}
+.checks label{display:grid;grid-template-columns:20px 1fr;gap:10px;align-items:start;font-size:.92rem}
+.checks input{margin-top:3px;width:16px;height:16px;accent-color:var(--neural)}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{font:500 .85rem/1 var(--body);padding:9px 12px;border-radius:999px;border:1px solid var(--line);background:var(--card);color:var(--ink);cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
+.chip.l1{background:var(--neural-soft);border-color:var(--neural);color:var(--neural)}
+.chip.l2{background:var(--neural);border-color:var(--neural);color:var(--card)}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:999px;overflow:hidden;flex-wrap:wrap}
+.seg label{display:flex;align-items:center;gap:6px;padding:8px 12px;cursor:pointer;font-size:.86rem;border-right:1px solid var(--line)}
+.seg label:last-child{border-right:0}
+.seg input{accent-color:var(--neural)}
+.fields2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+
+/* neural */
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.step{font:500 .72rem/1.2 var(--mono);text-align:center;padding:8px 4px;border-radius:10px;background:var(--sunk);color:var(--muted)}
+.step.on{background:var(--neural-soft);color:var(--neural)} .step.done{background:var(--neural);color:var(--card)}
+.stage{background:#1B1419;color:#F6EEF3;border-radius:18px;aspect-ratio:4/3;max-width:100%;display:grid;place-items:center;position:relative;overflow:hidden;user-select:none}
+.stage .fix{font:300 2.4rem/1 var(--body);color:#9C8A95}
+.stage .nm{font:600 2.2rem/1 var(--display)}
+.stage .flash{display:grid;justify-items:center;gap:10px;text-align:center;padding:12px}
+.stage .flash .av{width:110px;height:110px;border-radius:50%;display:grid;place-items:center;font:italic 800 3rem/1 var(--display);color:#fff}
+.stage .flash b{font:600 1.3rem/1 var(--display)}
+.stage .flash span{font-size:.85rem;color:#CDBEC8;max-width:28ch}
+.stage .ov{position:absolute;left:12px;right:12px;bottom:10px;display:flex;justify-content:space-between;font:.72rem/1 var(--mono);color:#9C8A95}
+.stage .idle{display:grid;gap:8px;justify-items:center;text-align:center;padding:18px;max-width:34ch;color:#DCCFD7}
+.prog{height:6px;border-radius:3px;background:var(--line);overflow:hidden}
+.prog i{display:block;height:100%;background:var(--neural);width:0}
+.rank{display:grid;gap:10px}
+.ritem{display:grid;grid-template-columns:44px 1fr auto;gap:12px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line)}
+.ritem:last-child{border-bottom:0}
+.av-s{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;font:italic 800 1.2rem/1 var(--display);color:#fff}
+.ritem .meter{height:8px;border-radius:4px;background:var(--sunk);position:relative;margin-top:6px;overflow:hidden}
+.ritem .meter i{position:absolute;left:0;top:0;bottom:0;background:var(--neural);border-radius:4px}
+.ritem .meter u{position:absolute;top:-2px;bottom:-2px;width:2px;background:var(--ink);text-decoration:none}
+.lvl{font:600 .7rem/1 var(--mono);padding:6px 8px;border-radius:999px;white-space:nowrap}
+.lvl.strong{background:var(--neural);color:var(--card)} .lvl.some{background:var(--neural-soft);color:var(--neural)} .lvl.none,.lvl.too_few{background:var(--sunk);color:var(--muted)}
+.truth{font:.72rem/1 var(--mono);color:var(--muted);margin-top:4px}
+.statgrid{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--line);border-radius:14px;overflow:hidden;border:1px solid var(--line)}
+.statgrid div{background:var(--card);padding:12px 14px;display:grid;gap:4px}
+.statgrid b{font:500 1.2rem/1 var(--mono)}
+
+/* matches & chat */
+.mlist{display:grid;gap:4px}
+.mrow{display:grid;grid-template-columns:52px 1fr auto;gap:12px;align-items:center;padding:10px;border-radius:14px;background:none;border:0;color:inherit;font:inherit;text-align:left;cursor:pointer}
+.mrow:hover{background:var(--sunk)}
+.mrow .av-s{width:52px;height:52px;font-size:1.4rem}
+.chat{display:grid;gap:8px;min-height:160px;align-content:end}
+.bubble{max-width:80%;padding:9px 13px;border-radius:18px;font-size:.95rem;justify-self:end;background:var(--accent);color:var(--accent-ink);border-bottom-right-radius:6px}
+.bubble small{display:block;font-size:.68rem;opacity:.8;margin-top:2px}
+.composer{display:grid;grid-template-columns:1fr auto;gap:8px}
+.ice{display:flex;flex-wrap:wrap;gap:6px}
+.ice button{font:inherit;font-size:.82rem;padding:7px 10px;border-radius:12px;border:1px dashed var(--accent);background:transparent;color:var(--accent);cursor:pointer;text-align:left}
+.empty{text-align:center;padding:30px 16px;color:var(--muted);display:grid;gap:10px;justify-items:center}
+
+.toast{position:fixed;left:50%;bottom:calc(96px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:999px;font-size:.9rem;z-index:10;white-space:nowrap}
+.match-pop{position:fixed;inset:0;z-index:20;background:rgba(20,8,16,.72);display:grid;place-items:center;padding:16px}
+.match-pop .card{max-width:360px;text-align:center;justify-items:center}
+.match-pop h2{font:italic 800 2.4rem/1 var(--display);color:var(--accent)}
+@media (prefers-reduced-motion:no-preference){ .match-pop .card{animation:pop .35s ease-out} @keyframes pop{from{transform:scale(.9);opacity:.4}to{transform:none;opacity:1}} }
+</style>
+
+<div class="app">
+  <header class="bar">
+    <div class="wordmark">spark <small>by BrainLock</small></div>
+    <span class="demo-pill">Demo · simulated headset</span>
+  </header>
+  <main id="main"></main>
+</div>
+<nav class="tabs" aria-label="Sections"><div class="tabs-in" id="tabs">
+  <button data-tab="discover"><svg viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="18" rx="3"/><path d="M9 14c1 1.2 2 1.8 3 1.8s2-.6 3-1.8"/></svg>Discover</button>
+  <button data-tab="brain"><svg viewBox="0 0 24 24"><path d="M3 13h3l2-6 3 11 3-8 2 3h5"/></svg>Brain swipe</button>
+  <button data-tab="matches"><svg viewBox="0 0 24 24"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg>Matches</button>
+  <button data-tab="you"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg>You</button>
+</div></nav>
+<div class="toast" id="toast" hidden></div>
+
+<script src="brainprint.js"></script>
+<script>
+(function(){
+"use strict";
+var O=BP.DEFAULTS, STORE="spark.brainlock.v1";
+// Fictional demo profiles. likesYou simulates the other side of a match.
+var PROFILES=[
+  {id:"maya", name:"Maya", age:29, km:3, hue:340, job:"Pediatric nurse", prompt:"The way to win me over is a really good taco truck recommendation.", tags:["Hiking","Tacos","Live music","Dogs"], likesYou:true},
+  {id:"jordan", name:"Jordan", age:32, km:6, hue:200, job:"Sound engineer", prompt:"I'm weirdly competitive about board games, but I bring snacks.", tags:["Board games","Vinyl","Cooking","Cycling"], likesYou:false},
+  {id:"priya", name:"Priya", age:27, km:2, hue:28, job:"Data journalist", prompt:"My most controversial opinion: breakfast for dinner beats dinner.", tags:["Running","Podcasts","Tacos","Travel"], likesYou:true},
+  {id:"sam", name:"Sam", age:31, km:9, hue:160, job:"Carpenter", prompt:"Looking for someone to split a farmers-market haul with on Saturdays.", tags:["Woodworking","Gardening","Dogs","Hiking"], likesYou:true},
+  {id:"lena", name:"Lena", age:34, km:4, hue:270, job:"Architect", prompt:"I'll plan the trip; you're in charge of the playlist.", tags:["Travel","Design","Live music","Climbing"], likesYou:false},
+  {id:"dev", name:"Dev", age:30, km:5, hue:95, job:"ER doctor", prompt:"Off-shift I'm either asleep or at the climbing gym. Join me for the second one.", tags:["Climbing","Cooking","Podcasts","Cycling"], likesYou:true}
+];
+var INTERESTS=["Hiking","Tacos","Live music","Dogs","Board games","Vinyl","Cooking","Cycling","Running","Podcasts","Travel","Woodworking","Gardening","Design","Climbing"];
+var CAL_NAMES=["Alex","Robin","Casey","Morgan","Taylor","Jamie","Riley","Quinn"];
+
+var S=load()||{tab:"brain", me:{name:"", age:"", bio:"", interests:[]}, neural:{optIn:false, calibration:null, sessions:[], shareBadge:false},
+  decisions:{}, matches:[], chats:{}, hidden:[], deckPos:0, openChat:null, example:null};
+var live=null;
+function load(){ try{ var r=localStorage.getItem(STORE); return r?JSON.parse(r):null; }catch(e){ return null; } }
+function save(){ try{ localStorage.setItem(STORE, JSON.stringify(S)); }catch(e){} }
+
+function $(s){ return document.querySelector(s); }
+function el(tag, a, kids){
+  var n=document.createElement(tag);
+  if(a) Object.keys(a).forEach(function(k){ var v=a[k];
+    if(k==="text") n.textContent=v; else if(k.slice(0,2)==="on") n.addEventListener(k.slice(2),v);
+    else if(v===true) n.setAttribute(k,""); else if(v!==false&&v!=null) n.setAttribute(k,v); });
+  (kids||[]).forEach(function(c){ if(c!=null) n.appendChild(typeof c==="string"?document.createTextNode(c):c); });
+  return n;
+}
+function toast(m){ var t=$("#toast"); t.textContent=m; t.hidden=false; clearTimeout(toast.t); toast.t=setTimeout(function(){t.hidden=true;},2400); }
+function pct(x){ return Math.round(x*100)+"%"; }
+function grad(h){ return "linear-gradient(150deg,hsl("+h+" 62% 58%),hsl("+((h+40)%360)+" 58% 40%))"; }
+function prof(id){ return PROFILES.filter(function(p){return p.id===id;})[0]; }
+function visible(){ return PROFILES.filter(function(p){ return S.hidden.indexOf(p.id)<0; }); }
+function lastSession(){ return S.neural.sessions[0]||null; }
+function sparkFor(id){ var s=lastSession(); if(!s) return null; return s.items.filter(function(i){return i.id===id;})[0]||null; }
+function go(tab){ if(live&&live.active){ toast("Finish or stop the session first."); return; } S.tab=tab; save(); render(); window.scrollTo(0,0); }
+$("#tabs").addEventListener("click",function(e){ var b=e.target.closest("button[data-tab]"); if(b) go(b.dataset.tab); });
+
+function render(){
+  document.querySelectorAll("#tabs button").forEach(function(b){
+    if(b.dataset.tab===S.tab) b.setAttribute("aria-current","page"); else b.removeAttribute("aria-current");
+    var old=b.querySelector(".badge"); if(old) old.remove();
+    if(b.dataset.tab==="matches" && S.matches.length) b.appendChild(el("span",{class:"badge",text:String(S.matches.length)}));
+  });
+  var m=$("#main"); m.innerHTML="";
+  m.appendChild(({discover:viewDiscover, brain:viewBrain, matches:viewMatches, you:viewYou}[S.tab]||viewBrain)());
+}
+
+// ---------------- profile card ----------------
+function profileCard(p, opts){
+  var sp=opts&&opts.spark;
+  var mine=S.me.interests||[];
+  return el("article",{class:"pcard"},[
+    el("div",{class:"portrait",style:"background:"+grad(p.hue)},[
+      el("span",{class:"initials","aria-hidden":"true",text:p.name[0]}),
+      sp && sp.level!=="none" && sp.level!=="too_few" ? el("span",{class:"spark-chip"},[el("i"), sp.level==="strong"?"Strong spark":"Some spark"]) : null,
+      el("div",{class:"who"},[el("b",{text:p.name+", "+p.age}), el("span",{text:p.job+" · "+p.km+" km away"})])
+    ]),
+    el("div",{class:"pbody"},[
+      el("div",{class:"prompt"},[el("div",{class:"label",text:"A prompt"}), el("p",{text:p.prompt})]),
+      el("div",{class:"tags"}, p.tags.map(function(t){ return el("span",{class:"tag"+(mine.indexOf(t)>=0?" shared":""),text:t}); }))
+    ])
+  ]);
+}
+
+// ---------------- discover ----------------
+function decide(p, choice){
+  S.decisions[p.id]=choice; S.deckPos++;
+  if(choice==="like" && p.likesYou && S.matches.indexOf(p.id)<0){ S.matches.push(p.id); save(); render(); matchPop(p); return; }
+  save(); render();
+}
+function matchPop(p){
+  var pop=el("div",{class:"match-pop",role:"dialog","aria-modal":"true","aria-label":"It's a match"},[
+    el("div",{class:"card"},[el("div",{class:"av-s",style:"width:84px;height:84px;font-size:2.4rem;background:"+grad(p.hue),text:p.name[0]}),
+      el("h2",{text:"It's a match"}), el("p",{class:"muted",text:"You and "+p.name+" both liked each other."}),
+      el("div",{class:"row",style:"justify-content:center"},[
+        el("button",{class:"btn",text:"Say hi",onclick:function(){ pop.remove(); S.openChat=p.id; go("matches"); }}),
+        el("button",{class:"btn quiet",text:"Keep browsing",onclick:function(){ pop.remove(); }})])])
+  ]);
+  document.body.appendChild(pop); pop.querySelector("button").focus();
+}
+function viewDiscover(){
+  var v=el("section",{class:"view"});
+  var deck=visible().filter(function(p){ return !S.decisions[p.id]; });
+  v.appendChild(el("div",{},[el("h2",{text:"Discover"}), el("p",{class:"muted",text:"These are demo profiles. You decide every like yourself. Brain swipe can only suggest."})]));
+  if(!deck.length){
+    v.appendChild(el("div",{class:"card empty"},[el("h3",{text:"You've seen everyone nearby"}), el("p",{text:"Check your matches, or start over to review the profiles again."}),
+      el("button",{class:"btn ghost",text:"Start over",onclick:function(){ S.decisions={}; save(); render(); }})]));
+    return v;
+  }
+  var p=deck[0], sp=sparkFor(p.id);
+  v.appendChild(profileCard(p,{spark:sp}));
+  if(sp && (sp.level==="strong"||sp.level==="some")) v.appendChild(el("div",{class:"msg neural",text:"Your last Brain swipe session showed "+(sp.level==="strong"?"a strong":"some")+" attention response to "+p.name+". It's a hint, not a decision."}));
+  v.appendChild(el("div",{class:"actions"},[
+    el("button",{class:"btn quiet",text:"Pass",onclick:function(){ decide(p,"pass"); }}),
+    el("button",{class:"btn",text:"Like",onclick:function(){ decide(p,"like"); }})
+  ]));
+  v.appendChild(el("button",{class:"mini-link",text:"Hide and report "+p.name,onclick:function(){ S.hidden.push(p.id); save(); toast(p.name+" is hidden. Thanks for reporting."); render(); }}));
+  return v;
+}
+
+// ---------------- brain swipe ----------------
+var sim={noise:10, p300:8, pace:"instant", prefs:{}};
+function viewBrain(){
+  var v=el("section",{class:"view"}), n=S.neural;
+  v.appendChild(el("div",{},[el("h2",{text:"Brain swipe"}), el("p",{class:"muted",text:"Profiles flash by while an EEG headset measures your brain's attention response (the P300). Profiles that stand out to you produce a stronger response."})]));
+  var stage = !n.optIn ? 0 : !(n.calibration && n.calibration.ok) ? 1 : 2;
+  v.appendChild(el("div",{class:"steps"},["Consent","Calibrate","Swipe"].map(function(t,i){ return el("div",{class:"step"+(i<stage?" done":i===stage?" on":""),text:(i+1)+" · "+t}); })));
+  if(live && live.active){ v.appendChild(liveCard()); return v; }
+  if(stage===0) v.appendChild(consentCard());
+  else if(stage===1) v.appendChild(calibrateCard());
+  else v.appendChild(swipeCard());
+  var res = lastSession() || S.example;
+  if(res) v.appendChild(resultsCard(res));
+  return v;
+}
+function consentCard(){
+  var items=["Brain swipe reads only my own headset. It never measures anyone else.",
+    "My brain data stays on this device. Other people never see it, including my matches.",
+    "Results are hints about attention, not attraction or compatibility. I make every like myself.",
+    "I can delete all my brain data at any time from the You tab."];
+  var boxes=items.map(function(t,i){ var c=el("input",{type:"checkbox",id:"nc-"+i}); return el("label",{for:"nc-"+i},[c,el("span",{text:t})]); });
+  var btn=el("button",{class:"btn neural wide",text:"Turn on Brain swipe",disabled:true,onclick:function(){ S.neural.optIn=true; S.neural.optInAt=new Date().toISOString(); save(); render(); }});
+  boxes.forEach(function(l){ l.firstChild.addEventListener("change",function(){ btn.disabled=boxes.some(function(b){return !b.firstChild.checked;}); }); });
+  return el("div",{class:"card"},[el("h3",{text:"Before you start"}), el("div",{class:"checks"},boxes), btn]);
+}
+function simControls(withPrefs){
+  function radio(name,val,text){ var i=el("input",{type:"radio",name:"pace",value:val}); i.checked=sim.pace===val; i.addEventListener("change",function(){sim.pace=val;}); return el("label",{},[i,text]); }
+  function num(key,label){ var i=el("input",{type:"number",id:"s-"+key,min:key==="noise"?2:0,max:30,step:1,value:sim[key]}); i.addEventListener("input",function(){sim[key]=+i.value;}); return el("label",{class:"f",for:"s-"+key},[label,i]); }
+  var box=el("div",{style:"display:grid;gap:12px"},[
+    el("div",{class:"label",text:"Simulated headset"}),
+    el("div",{class:"fields2"},[num("p300","Your P300 size (µV)"), num("noise","Signal noise (µV)")]),
+    el("div",{class:"seg"},[radio("pace","instant","Instant"), radio("pace","demo","Watch it (fast)")])
+  ]);
+  if(withPrefs){
+    box.appendChild(el("div",{class:"label",text:"Demo only: who does the simulated you find interesting?"}));
+    box.appendChild(el("p",{class:"muted",style:"font-size:.85rem",text:"With a real headset you'd skip this. Here it tells the simulator what to send, so you can check whether Brain swipe finds it. Tap once for \"a bit\", twice for \"a lot\"."}));
+    box.appendChild(el("div",{class:"chips"}, visible().map(function(p){
+      var lv=sim.prefs[p.id]||0;
+      return el("button",{type:"button",class:"chip"+(lv===1?" l1":lv===2?" l2":""),text:p.name+(lv===1?" · a bit":lv===2?" · a lot":""),onclick:function(){ sim.prefs[p.id]=((sim.prefs[p.id]||0)+1)%3; render(); }});
+    })));
+  }
+  return box;
+}
+function calibrateCard(){
+  var nm=(S.me.name||"").trim();
+  return el("div",{class:"card"},[
+    el("h3",{text:"Calibrate to your brain"}),
+    el("p",{class:"muted",text:"Your own name flashes among other names. Silently count each time you see it. Your name reliably triggers a strong P300, which becomes the reference for how strong a response can be."}),
+    !nm ? el("div",{class:"msg warn"},["Add your first name in the You tab first. ", el("button",{class:"mini-link",text:"Go to You",onclick:function(){go("you");}})]) : null,
+    S.neural.calibration && !S.neural.calibration.ok ? el("div",{class:"msg warn",text:"The last calibration signal was too weak to use (support "+pct(S.neural.calibration.support||0)+"). Reseat the headset and try again."}) : null,
+    simControls(false),
+    el("button",{class:"btn neural wide",text:"Start calibration (200 flashes)",disabled:!nm,onclick:startCalibration})
+  ]);
+}
+function swipeCard(){
+  var c=S.neural.calibration;
+  return el("div",{class:"card"},[
+    el("div",{class:"row",style:"justify-content:space-between"},[el("h3",{text:"Run a Brain swipe session"}), el("span",{class:"lvl some",text:"Calibrated · "+c.amplitudeUv.toFixed(1)+" µV"})]),
+    el("p",{class:"muted",text:"Each of the "+visible().length+" profiles flashes 40 times in random order, "+visible().length*40+" flashes in all. Relax and look at each one."}),
+    simControls(true),
+    el("div",{class:"row"},[el("button",{class:"btn neural",text:"Start session",onclick:startSwipe}),
+      el("button",{class:"btn quiet",text:"Recalibrate",onclick:function(){ S.neural.calibration=null; save(); render(); }})])
+  ]);
+}
+function liveCard(){
+  return el("div",{class:"card"},[
+    el("div",{class:"stage",id:"stage"},[el("div",{class:"fix",text:"+"})]),
+    el("div",{class:"prog"},[el("i",{id:"prog"})]),
+    el("div",{class:"row",style:"justify-content:space-between"},[el("span",{class:"mono muted",id:"progtxt",text:"0 / "+live.seq.length}),
+      el("button",{class:"btn danger",text:"Stop",onclick:function(){ clearTimeout(live.timer); live=null; toast("Session stopped. Nothing was saved."); render(); }})])
+  ]);
+}
+function makeSeq(items, reps, seed){
+  var r=BP.rng(seed), pool=[]; for(var k=0;k<reps;k++) pool=pool.concat(items);
+  for(var tries=0;tries<200;tries++){
+    for(var j=pool.length-1;j>0;j--){ var x=r.int(j+1), t=pool[j]; pool[j]=pool[x]; pool[x]=t; }
+    if(pool.every(function(p,i){ return !i || p.key!==pool[i-1].key; })) break;
+  }
+  return pool;
+}
+function runStream(seq, gainOf, show, done){
+  var seed=(Date.now()%2147483647)>>>0, r=BP.rng(seed*31+7), times=BP.timeAxis(O), headset={p300Uv:sim.p300, noiseUv:sim.noise, blinkRate:0.03};
+  live={active:true, seq:seq, i:0, epochs:[], labels:[], timer:null};
+  render();
+  function trial(){ var it=seq[live.i]; live.epochs.push(BP.simulateResponse(gainOf(it), headset, r, times)); live.labels.push(it.key); live.i++; return it; }
+  function finish(){ var L=live; live=null; var pre=BP.preprocess(L.epochs, times, O); done(pre.clean, L.labels.filter(function(_,i){return pre.keep[i];}), times, pre.keep.filter(function(k){return !k;}).length, seed); }
+  if(sim.pace==="instant"){ while(live.i<seq.length) trial(); finish(); return; }
+  (function tick(){
+    if(!live) return;
+    if(live.i>=seq.length){ finish(); return; }
+    var it=trial(), st=$("#stage");
+    if(st){ st.innerHTML=""; st.appendChild(show(it)); st.appendChild(el("div",{class:"ov"},[el("span",{text:live.i+" / "+seq.length}), el("span",{text:"stay still, blink between flashes"})])); }
+    var pg=$("#prog"); if(pg) pg.style.width=(live.i/seq.length*100)+"%";
+    var pt=$("#progtxt"); if(pt) pt.textContent=live.i+" / "+seq.length;
+    live.timer=setTimeout(function(){ var s=$("#stage"); if(s){ s.innerHTML=""; s.appendChild(el("div",{class:"fix",text:"+"})); } live.timer=setTimeout(tick, 120); }, 200);
+  })();
+}
+function startCalibration(){
+  var me=S.me.name.trim(), items=[{key:"target",text:me}].concat(CAL_NAMES.filter(function(n){return n.toLowerCase()!==me.toLowerCase();}).slice(0,4).map(function(n){return {key:"standard",text:n};}));
+  // 40 presentations of the subject's name among 160 other names (1 in 5).
+  var seq=makeSeq([items[0]], 40, 11).concat(makeSeq(items.slice(1), 40, 12));
+  var r=BP.rng(Date.now()>>>0); for(var j=seq.length-1;j>0;j--){ var x=r.int(j+1), t=seq[j]; seq[j]=seq[x]; seq[x]=t; }
+  runStream(seq, function(it){ return it.key==="target"?1:0; }, function(it){ return el("div",{class:"nm",text:it.text}); }, function(clean, labels, times, rejected){
+    var c=BP.calibrate(clean, labels, times);
+    c.at=new Date().toISOString(); c.rejected=rejected;
+    S.neural.calibration=c; save(); render();
+    toast(c.ok?"Calibrated. Your reference response is "+c.amplitudeUv.toFixed(1)+" µV.":"Signal too weak. Try again.");
+  });
+}
+function startSwipe(){
+  var ps=visible(), items=ps.map(function(p){return {key:p.id};});
+  var gains={0:0.1, 1:0.6, 2:1};
+  var prefs=Object.assign({}, sim.prefs);
+  runStream(makeSeq(items, 40, Date.now()>>>0), function(it){ return gains[prefs[it.key]||0]; }, function(it){
+    var p=prof(it.key); return el("div",{class:"flash"},[el("div",{class:"av",style:"background:"+grad(p.hue),text:p.name[0]}), el("b",{text:p.name+", "+p.age}), el("span",{text:p.prompt})]);
+  }, function(clean, labels, times, rejected, seed){
+    var a=BP.analyseAttention(clean, labels, times, {calibrationUv:S.neural.calibration.amplitudeUv, seed:seed});
+    var sess={at:new Date().toISOString(), items:a.items, strong:a.thresholds.strong, weak:a.thresholds.weak, nBoot:a.nBoot, rejected:rejected, total:labels.length+rejected, truth:prefs, version:a.version};
+    S.neural.sessions.unshift(sess); S.neural.sessions=S.neural.sessions.slice(0,10); save(); render();
+    toast("Session analyzed");
+  });
+}
+function resultsCard(res){
+  var isEx=!!res.example;
+  var card=el("div",{class:"card"},[
+    el("div",{class:"row",style:"justify-content:space-between"},[el("h3",{text:isEx?"Example result":"Your latest session"}), el("span",{class:"label",text:new Date(res.at).toLocaleDateString(undefined,{month:"short",day:"numeric"})})]),
+    isEx ? el("div",{class:"msg warn",text:"Simulated example so you can see what a result looks like. Your own sessions replace it."}) : null,
+    el("div",{class:"statgrid"},[
+      el("div",{},[el("span",{class:"label",text:"Strong spark at"}), el("b",{class:"num",text:"≥ "+(res.strong*100).toFixed(1)+"%"})]),
+      el("div",{},[el("span",{class:"label",text:"Clean flashes"}), el("b",{class:"num",text:(res.total-res.rejected)+" / "+res.total})])
+    ])
+  ]);
+  var list=el("div",{class:"rank"});
+  res.items.forEach(function(it){
+    var p=prof(it.id); if(!p) return;
+    var truth=res.truth?(res.truth[it.id]===2?"a lot":res.truth[it.id]===1?"a bit":"not set"):null;
+    list.appendChild(el("div",{class:"ritem"},[
+      el("div",{class:"av-s",style:"background:"+grad(p.hue),text:p.name[0]}),
+      el("div",{},[
+        el("div",{class:"row",style:"gap:8px"},[el("b",{text:p.name}), el("span",{class:"muted mono",style:"font-size:.8rem",text:pct(it.support)+(it.index!=null?" · "+Math.round(Math.max(0,it.index)*100)+"% of your name":"")})]),
+        el("div",{class:"meter",title:"Bootstrap support"},[el("i",{style:"width:"+(it.support*100)+"%"}), el("u",{style:"left:"+(res.strong*100)+"%"})]),
+        truth ? el("div",{class:"truth",text:"Simulated interest: "+truth}) : null
+      ]),
+      el("span",{class:"lvl "+it.level,text:it.level==="strong"?"Strong spark":it.level==="some"?"Some spark":it.level==="too_few"?"Too few":"No clear signal"})
+    ]));
+  });
+  card.appendChild(list);
+  card.appendChild(el("p",{class:"muted",style:"font-size:.82rem",text:"Support is the share of "+res.nBoot+" resampled averages where a profile's response beat everyone else's. A strong spark needs "+(res.strong*100).toFixed(1)+"% because "+res.items.length+" profiles are tested at once. Attention responses can also come from surprise or familiarity, so treat these as hints."}));
+  if(!isEx) card.appendChild(el("button",{class:"btn ghost",text:"Review these profiles in Discover",onclick:function(){ S.decisions={}; save(); go("discover"); }}));
+  return card;
+}
+
+// ---------------- matches ----------------
+function viewMatches(){
+  var v=el("section",{class:"view"});
+  if(S.openChat && S.matches.indexOf(S.openChat)>=0) return chatView(prof(S.openChat));
+  v.appendChild(el("div",{},[el("h2",{text:"Matches"}), el("p",{class:"muted",text:"A match needs two likes. Brain swipe never creates one."})]));
+  if(!S.matches.length){ v.appendChild(el("div",{class:"card empty"},[el("h3",{text:"No matches yet"}), el("p",{text:"Like someone in Discover. If they've liked you too, they show up here."}), el("button",{class:"btn ghost",text:"Go to Discover",onclick:function(){go("discover");}})])); return v; }
+  v.appendChild(el("div",{class:"card mlist",style:"padding:8px"}, S.matches.map(function(id){
+    var p=prof(id), msgs=S.chats[id]||[], last=msgs[msgs.length-1];
+    return el("button",{class:"mrow",onclick:function(){ S.openChat=id; save(); render(); }},[
+      el("div",{class:"av-s",style:"background:"+grad(p.hue),text:p.name[0]}),
+      el("div",{},[el("b",{text:p.name}), el("div",{class:"muted",style:"font-size:.86rem",text:last?"You: "+last.text:"New match. Say hi."})]),
+      el("span",{class:"muted",text:"›"})]);
+  })));
+  return v;
+}
+function icebreakers(p){
+  var shared=p.tags.filter(function(t){ return (S.me.interests||[]).indexOf(t)>=0; });
+  var out=shared.slice(0,2).map(function(t){ return "We both like "+t.toLowerCase()+". What got you into it?"; });
+  out.push("Okay, I have to ask about your prompt: \""+p.prompt.slice(0,48)+(p.prompt.length>48?"…":"")+"\"");
+  return out;
+}
+function chatView(p){
+  var v=el("section",{class:"view"});
+  var msgs=S.chats[p.id]||[];
+  var input=el("input",{type:"text",id:"chat-in",placeholder:"Message "+p.name,maxlength:"500"});
+  function send(t){ t=(t||"").trim(); if(!t) return; S.chats[p.id]=(S.chats[p.id]||[]).concat([{text:t, at:new Date().toISOString()}]); save(); render(); setTimeout(function(){ var i=$("#chat-in"); if(i) i.focus(); }); }
+  input.addEventListener("keydown",function(e){ if(e.key==="Enter"){ e.preventDefault(); send(input.value); } });
+  v.appendChild(el("div",{class:"row",style:"justify-content:space-between"},[
+    el("button",{class:"btn quiet",text:"‹ Matches",onclick:function(){ S.openChat=null; save(); render(); }}),
+    el("button",{class:"mini-link",text:"Unmatch",onclick:function(){ S.matches=S.matches.filter(function(x){return x!==p.id;}); delete S.chats[p.id]; S.openChat=null; save(); toast("Unmatched "+p.name); render(); }})
+  ]));
+  v.appendChild(profileCard(p,{}));
+  v.appendChild(el("div",{class:"card"},[
+    el("div",{class:"chat"}, msgs.length ? msgs.map(function(m){ return el("div",{class:"bubble"},[m.text, el("small",{text:new Date(m.at).toLocaleTimeString(undefined,{hour:"2-digit",minute:"2-digit"})})]); }) : [el("p",{class:"muted",style:"text-align:center",text:"You matched with "+p.name+". Start with one of these, or write your own."})]),
+    !msgs.length ? el("div",{class:"ice"}, icebreakers(p).map(function(t){ return el("button",{type:"button",text:t,onclick:function(){ input.value=t; input.focus(); }}); })) : null,
+    el("div",{class:"composer"},[input, el("button",{class:"btn",text:"Send",onclick:function(){ send(input.value); }})]),
+    el("p",{class:"muted",style:"font-size:.78rem",text:"Demo profiles don't reply. Messages are kept on this device only."})
+  ]));
+  return v;
+}
+
+// ---------------- you ----------------
+function viewYou(){
+  var v=el("section",{class:"view"}), me=S.me;
+  v.appendChild(el("div",{},[el("h2",{text:"You"}), el("p",{class:"muted",text:"Your profile and your brain-data settings."})]));
+  var name=el("input",{type:"text",id:"y-name",value:me.name,maxlength:"30"});
+  var age=el("input",{type:"number",id:"y-age",min:"18",max:"99",value:me.age});
+  var bio=el("textarea",{id:"y-bio",maxlength:"300"}); bio.value=me.bio||"";
+  var err=el("div");
+  function upd(){
+    me.name=name.value.trim(); me.bio=bio.value; var a=parseInt(age.value,10); me.age=isNaN(a)?"":a; save();
+    err.innerHTML=""; if(me.age!=="" && me.age<18) err.appendChild(el("div",{class:"msg warn",text:"Spark is for adults only. You must be 18 or older."}));
+  }
+  [name,age,bio].forEach(function(n){ n.addEventListener("input",upd); });
+  var chips=el("div",{class:"chips"}, INTERESTS.map(function(t){
+    return el("button",{type:"button",class:"chip","aria-pressed":(me.interests||[]).indexOf(t)>=0?"true":"false",text:t,onclick:function(e){
+      var i=me.interests.indexOf(t); if(i>=0) me.interests.splice(i,1); else me.interests.push(t); save(); e.currentTarget.setAttribute("aria-pressed",i>=0?"false":"true"); }});
+  }));
+  v.appendChild(el("div",{class:"card"},[el("div",{class:"fields2"},[el("label",{class:"f",for:"y-name"},["First name",name]), el("label",{class:"f",for:"y-age"},["Age",age])]), err,
+    el("label",{class:"f",for:"y-bio"},["About you",bio]), el("div",{style:"display:grid;gap:8px"},[el("span",{style:"font-weight:600;font-size:.92rem",text:"Interests"}), chips])]));
+
+  var n=S.neural, confirmDel=false;
+  var share=el("input",{type:"checkbox",id:"y-share"}); share.checked=!!n.shareBadge;
+  share.addEventListener("change",function(){ n.shareBadge=share.checked; save(); toast(share.checked?"Badge sharing on":"Badge sharing off"); });
+  var delBox=el("div",{class:"row"});
+  function delUi(){
+    delBox.innerHTML="";
+    if(!confirmDel) delBox.appendChild(el("button",{class:"btn danger",text:"Delete all brain data",onclick:function(){ confirmDel=true; delUi(); }}));
+    else { delBox.appendChild(el("span",{text:"Delete calibration and all sessions?"}));
+      delBox.appendChild(el("button",{class:"btn danger",text:"Delete",onclick:function(){ S.neural={optIn:false, calibration:null, sessions:[], shareBadge:false}; save(); toast("Brain data deleted"); render(); }}));
+      delBox.appendChild(el("button",{class:"btn quiet",text:"Keep",onclick:function(){ confirmDel=false; delUi(); }})); }
+  }
+  delUi();
+  v.appendChild(el("div",{class:"card"},[
+    el("h3",{text:"Brain data"}),
+    el("div",{class:"statgrid"},[
+      el("div",{},[el("span",{class:"label",text:"Brain swipe"}), el("b",{text:n.optIn?"On":"Off"})]),
+      el("div",{},[el("span",{class:"label",text:"Calibration"}), el("b",{class:"num",text:n.calibration&&n.calibration.ok?n.calibration.amplitudeUv.toFixed(1)+" µV":"None"})]),
+      el("div",{},[el("span",{class:"label",text:"Sessions stored"}), el("b",{class:"num",text:String(n.sessions.length)})]),
+      el("div",{},[el("span",{class:"label",text:"Stored where"}), el("b",{style:"font-size:.95rem",text:"This device"})])
+    ]),
+    el("div",{class:"checks"},[el("label",{for:"y-share"},[share, el("span",{},["Show a \"used Brain swipe\" badge to people I've matched with. ", el("span",{class:"muted",text:"They never see your results or which profiles you responded to."})])])]),
+    delBox
+  ]));
+  v.appendChild(el("div",{class:"card"},[el("h3",{text:"Demo"}), el("p",{class:"muted",text:"Everything here is stored in this browser. Resetting clears your profile, decisions, matches, chats and brain data."}),
+    el("button",{class:"btn quiet",text:"Reset the demo",onclick:function(){ try{localStorage.removeItem(STORE);}catch(e){} location.reload(); }})]));
+  setTimeout(upd);
+  return v;
+}
+
+// ---------------- example result (first run) ----------------
+function seedExample(){
+  var times=BP.timeAxis(O), r=BP.rng(2026), headset={p300Uv:8, noiseUv:10, blinkRate:0.03}, truth={priya:2, sam:1};
+  var gains={0:0.1,1:0.6,2:1}, epochs=[], labels=[];
+  makeSeq(PROFILES.map(function(p){return {key:p.id};}), 40, 99).forEach(function(it){ epochs.push(BP.simulateResponse(gains[truth[it.key]||0], headset, r, times)); labels.push(it.key); });
+  var pre=BP.preprocess(epochs, times, O), kept=labels.filter(function(_,i){return pre.keep[i];});
+  var a=BP.analyseAttention(pre.clean, kept, times, {calibrationUv:7.5, seed:99});
+  S.example={example:true, at:new Date().toISOString(), items:a.items, strong:a.thresholds.strong, nBoot:a.nBoot, rejected:labels.length-kept.length, total:labels.length, truth:truth};
+  save();
+}
+if(!S.example) seedExample();
+render();
+})();
+</script>

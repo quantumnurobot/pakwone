@@ -1,0 +1,352 @@
+<title>Call Check</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@112,700;112,800&family=Atkinson+Hyperlegible:wght@400;700&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+:root{
+  --bg:#EEF1F5; --card:#FFFFFF; --sunk:#E4E9F0; --ink:#121A2B; --muted:#56607A; --line:#D3DAE5;
+  --navy:#14213D; --navy-ink:#FFFFFF;
+  --safe:#22704A; --safe-bg:#DFF2E7; --caution:#8F5B00; --caution-bg:#FFF0D1; --danger:#B42B22; --danger-bg:#FCE3E0; --info-bg:#E2EAF7;
+  --display:"Archivo","Arial Narrow",system-ui,sans-serif; --body:"Atkinson Hyperlegible","Segoe UI",system-ui,sans-serif; --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#0C111C; --card:#151C2B; --sunk:#111725; --ink:#E8EDF6; --muted:#9AA6BD; --line:#26304A;
+    --navy:#C9D6F2; --navy-ink:#0C111C;
+    --safe:#6FD49E; --safe-bg:#10281C; --caution:#F3C46B; --caution-bg:#2A2010; --danger:#FF8A7F; --danger-bg:#2E1412; --info-bg:#18233A;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#0C111C; --card:#151C2B; --sunk:#111725; --ink:#E8EDF6; --muted:#9AA6BD; --line:#26304A;
+  --navy:#C9D6F2; --navy-ink:#0C111C;
+  --safe:#6FD49E; --safe-bg:#10281C; --caution:#F3C46B; --caution-bg:#2A2010; --danger:#FF8A7F; --danger-bg:#2E1412; --info-bg:#18233A;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:17px/1.5 var(--body);padding-inline:16px}
+.app{max-width:560px;margin-inline:auto;padding-block:0 40px}
+h1,h2,h3{margin:0;line-height:1.15;text-wrap:balance}
+h1{font:800 1.45rem/1 var(--display);letter-spacing:.01em}
+h2{font:700 1.35rem/1.15 var(--display)}
+h3{font:700 1.05rem/1.3 var(--body)}
+p{margin:0}
+.muted{color:var(--muted)} .mono{font-family:var(--mono)}
+.label{font:500 .72rem/1.2 var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible{outline:3px solid #3B6FD8;outline-offset:2px}
+
+header{display:flex;justify-content:space-between;align-items:center;gap:12px;padding-block:16px 12px}
+.logo{display:flex;align-items:center;gap:10px}
+.logo svg{width:30px;height:30px}
+nav{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;background:var(--sunk);padding:4px;border-radius:12px;margin-bottom:18px;position:sticky;top:env(safe-area-inset-top,0px);z-index:4}
+nav button{font:700 .9rem/1.1 var(--body);border:0;background:none;color:var(--muted);padding:10px 4px;border-radius:9px;cursor:pointer}
+nav button[aria-current="page"]{background:var(--card);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.08)}
+
+.view{display:grid;gap:16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px;display:grid;gap:14px}
+.btn{font:700 1rem/1 var(--body);padding:14px 18px;border-radius:12px;border:2px solid var(--navy);background:var(--navy);color:var(--navy-ink);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:48px}
+.btn.ghost{background:transparent;color:var(--navy)}
+.btn.quiet{background:transparent;color:var(--muted);border-color:var(--line)}
+.btn.danger{background:var(--danger);border-color:var(--danger);color:#fff}
+.btn.safe{background:var(--safe);border-color:var(--safe);color:#fff}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.msg{padding:12px 14px;border-radius:12px;font-size:.95rem}
+.msg.info{background:var(--info-bg)} .msg.caution{background:var(--caution-bg);color:var(--caution)} .msg.danger{background:var(--danger-bg);color:var(--danger)} .msg.safe{background:var(--safe-bg);color:var(--safe)}
+.tag{font:500 .68rem/1 var(--mono);padding:4px 6px;border-radius:5px;background:var(--caution-bg);color:var(--caution);margin-left:6px;vertical-align:middle}
+
+/* claim picker */
+.claims{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.claim{display:grid;gap:4px;text-align:left;padding:14px;border-radius:14px;border:1.5px solid var(--line);background:var(--card);color:var(--ink);font:inherit;cursor:pointer;min-height:84px}
+.claim b{font:700 1rem/1.2 var(--body)} .claim span{font-size:.85rem;color:var(--muted)}
+.claim:hover{border-color:var(--navy)}
+
+/* risk meter */
+.risk{display:grid;gap:10px;padding:16px 18px;border-radius:16px;border:2px solid var(--line);background:var(--card);position:sticky;top:calc(env(safe-area-inset-top,0px) + 64px);z-index:3}
+.risk.low{border-color:var(--line)} .risk.caution{border-color:var(--caution);background:var(--caution-bg)} .risk.high,.risk.scam{border-color:var(--danger);background:var(--danger-bg)} .risk.verified{border-color:var(--safe);background:var(--safe-bg)}
+.risk .top{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.risk .state{font:800 1.3rem/1 var(--display);letter-spacing:.01em}
+.risk.caution .state{color:var(--caution)} .risk.high .state,.risk.scam .state{color:var(--danger)} .risk.verified .state{color:var(--safe)}
+.gauge{display:grid;grid-template-columns:repeat(4,1fr);gap:4px}
+.gauge i{height:8px;border-radius:4px;background:var(--line)}
+.risk.caution .gauge i:nth-child(-n+2){background:var(--caution)}
+.risk.high .gauge i:nth-child(-n+3),.risk.scam .gauge i{background:var(--danger)}
+.risk.low .gauge i:nth-child(1){background:var(--muted)}
+.risk.verified .gauge i{background:var(--safe)}
+.say{font-size:1rem;border-left:4px solid currentColor;padding-left:10px}
+
+/* flags */
+.flags{display:grid;gap:8px}
+.flag{display:grid;grid-template-columns:28px 1fr;gap:10px;align-items:start;padding:12px;border-radius:12px;border:1.5px solid var(--line);background:var(--card);cursor:pointer;text-align:left;font:inherit;color:inherit}
+.flag .box{width:24px;height:24px;border-radius:6px;border:2px solid var(--line);display:grid;place-items:center;font-weight:700;color:#fff}
+.flag[aria-pressed="true"]{border-color:var(--danger);background:var(--danger-bg)}
+.flag[aria-pressed="true"] .box{background:var(--danger);border-color:var(--danger)}
+.flag small{display:block;color:var(--muted);font-size:.84rem;margin-top:2px}
+.flag.hard small{color:var(--danger)}
+
+.steps{display:grid;gap:10px;counter-reset:st;padding:0;margin:0}
+.steps li{list-style:none;display:grid;grid-template-columns:30px 1fr;gap:10px;counter-increment:st}
+.steps li::before{content:counter(st);width:26px;height:26px;border-radius:50%;background:var(--navy);color:var(--navy-ink);display:grid;place-items:center;font:700 .85rem/1 var(--mono)}
+.challenge{display:grid;gap:8px;padding:12px;border-radius:12px;background:var(--sunk)}
+.challenge .q{font-weight:700}
+.challenge .a{font-family:var(--mono);font-size:.9rem}
+
+label.f{display:grid;gap:6px;font-weight:700;font-size:.95rem}
+label.f small{font-weight:400;color:var(--muted)}
+input[type=text],input[type=tel],textarea,select{font:inherit;color:var(--ink);background:var(--bg);border:1.5px solid var(--line);border-radius:10px;padding:11px 12px;width:100%}
+textarea{min-height:90px;resize:vertical}
+.qa{display:grid;gap:12px}
+
+.log{display:grid;gap:10px}
+.entry{display:grid;gap:6px;padding:14px;border-radius:14px;border:1px solid var(--line);background:var(--card)}
+.entry .top{display:flex;justify-content:space-between;gap:10px;align-items:baseline;flex-wrap:wrap}
+.pill{font:700 .74rem/1 var(--mono);padding:6px 8px;border-radius:999px;white-space:nowrap}
+.p-scam,.p-high{background:var(--danger-bg);color:var(--danger)} .p-caution{background:var(--caution-bg);color:var(--caution)} .p-verified{background:var(--safe-bg);color:var(--safe)} .p-low{background:var(--sunk);color:var(--muted)}
+.contact{display:grid;gap:8px;padding:14px;border-radius:14px;border:1px solid var(--line);background:var(--card)}
+.empty{text-align:center;color:var(--muted);padding:20px}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:11px 18px;border-radius:999px;font-size:.95rem;z-index:10;max-width:calc(100% - 32px)}
+footer{margin-top:28px;font-size:.85rem;color:var(--muted)}
+@media (max-width:420px){ .claims,.grid2{grid-template-columns:1fr} }
+</style>
+
+<div class="app">
+  <header>
+    <div class="logo">
+      <svg viewBox="0 0 30 30" aria-hidden="true"><path d="M15 2 26 6v8c0 7-4.6 11.6-11 14C8.6 25.6 4 21 4 14V6z" style="fill:var(--navy)"/><path d="m10 15 3.5 3.5L20.5 11" style="fill:none;stroke:var(--bg);stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round"/></svg>
+      <h1>Call Check</h1>
+    </div>
+    <span class="label">Is this caller real?</span>
+  </header>
+  <nav id="nav" aria-label="Sections">
+    <button data-tab="call">Live call</button>
+    <button data-tab="contacts">Contacts</button>
+    <button data-tab="questions">Questions</button>
+    <button data-tab="log">Call log</button>
+  </nav>
+  <main id="main"></main>
+  <footer>Call Check gives guidance, not certainty. If money or personal information is at stake, hang up and call back on a number you already trust. Your contacts, questions and log are stored only in this browser.</footer>
+</div>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+(function(){
+"use strict";
+var STORE="callcheck.v1";
+var CLAIMS={
+  family:{name:"Family or friend", hint:"Grandchild, parent, partner, friend", say:"Ask your challenge question. Then hang up and call them on the number you have saved.",
+    steps:["Ask the challenge question you set up for them. A cloned voice can sound exactly right but won't know the answer.","Hang up and call them back on the number saved in your phone, not the one that called you.","If you can't reach them, call another family member before doing anything."]},
+  bank:{name:"Bank or card company", hint:"Fraud department, card security", say:"\"I'll call the number on the back of my card.\" Then hang up.",
+    steps:["Hang up and call the number printed on the back of your card or on your statement.","Real banks never ask for one-time codes, PINs or passwords, and never ask you to move money to a \"safe account\".","Caller ID can be faked to show your bank's real number. It proves nothing."]},
+  gov:{name:"Government or police", hint:"IRS, Social Security, court, sheriff", say:"\"I'll contact the agency directly.\" Then hang up.",
+    steps:["Hang up. Agencies don't demand immediate payment by phone, and never by gift card, crypto or wire.","Call the agency on its official number: IRS 800-829-1040, Social Security 800-772-1213, or your local police non-emergency line.","Threats of arrest over the phone are a scam script."]},
+  tech:{name:"Tech support", hint:"Microsoft, Apple, internet provider", say:"\"I don't allow remote access.\" Then hang up.",
+    steps:["Microsoft and Apple don't make unsolicited support calls.","Never install an app or give remote access because a caller asked.","If you're worried, contact the company through its official website or the app you already use."]},
+  company:{name:"Company or delivery", hint:"Amazon, utility, package, prize", say:"\"I'll check my account in the app.\" Then hang up.",
+    steps:["Check your account in the company's own app or website instead of following the caller.","Utilities and retailers don't threaten same-day shutoffs paid by gift card or crypto.","Prizes you have to pay to claim are always scams."]},
+  online:{name:"Someone I met online", hint:"Dating app, social media, a new friend", say:"\"Let's video chat first.\" Never send money to someone you haven't met.",
+    steps:["Ask for a live video call. Repeated excuses are a warning sign.","Never send money, gift cards or crypto to someone you haven't met in person.","Investment tips from a new online contact are the most common romance-scam hook."]},
+  unknown:{name:"Unknown or other", hint:"They won't say, or I'm not sure", say:"Ask the caller questions below, then verify on your own.",
+    steps:["Ask the questions in the Questions tab and write down the answers.","Look up the organization's official number yourself and call it.","Don't confirm personal details until you've verified who they are."]}
+};
+var FLAGS=[
+  {id:"gift", t:"Asked for gift cards", d:"Always a scam. No real organization takes payment in gift cards.", hard:true},
+  {id:"crypto", t:"Asked for crypto or a Bitcoin ATM", d:"Always a scam when a caller asks for it.", hard:true},
+  {id:"otp", t:"Asked for a one-time code, PIN or password", d:"Always a scam. Those codes exist to stop this.", hard:true},
+  {id:"move", t:"Told to move money to a \"safe\" account", d:"Always a scam. Banks never ask this.", hard:true},
+  {id:"remote", t:"Asked to install an app or allow remote access", d:"Almost always a scam.", hard:true},
+  {id:"p2p", t:"Asked for Zelle, Venmo, Cash App or a wire", d:"These payments can't be reversed, which is why scammers want them.", w:4},
+  {id:"secret", t:"Told to keep it secret", d:"\"Don't tell your bank or family\" isolates you.", w:3},
+  {id:"threat", t:"Threatened arrest, fines or account closure", d:"Fear is used to rush you.", w:3},
+  {id:"urgent", t:"Pushed me to act right now", d:"Real issues can wait for a callback.", w:2},
+  {id:"stay", t:"Told me not to hang up", d:"Keeps you from verifying.", w:2},
+  {id:"emergency", t:"Emergency story asking for money", d:"Accident, jail, hospital, stranded abroad.", w:3},
+  {id:"nocall", t:"Refused or discouraged a callback", d:"A real caller is fine with you calling back.", w:3},
+  {id:"details", t:"Asked to confirm SSN, account or card numbers", d:"They should already have this if they're real.", w:3},
+  {id:"mismatch", t:"Their callback number doesn't match the official one", d:"Compare with the number on your card or the official website.", w:3},
+  {id:"feel", t:"Voice sounds right, but something feels off", d:"Trust that. Voices can be cloned from a few seconds of audio.", w:1}
+];
+var DEFAULT_QUESTIONS=["What is your full name?","Which organization and department are you with?","What number can I call you back on?","What is the case or reference number?","Why are you calling me today?","Can I call you back through the main number on your website?"];
+
+var S=load()||seed();
+var call=null; // active call (not persisted until saved)
+function seed(){
+  return {tab:"call", questions:DEFAULT_QUESTIONS.slice(), contacts:[{id:"ex1", name:"Grandma Lee", rel:"Grandmother", phone:"(555) 010-2244", q:"What did we name the cat we had when I was little?", a:"Biscuit", example:true}],
+    log:[{id:"exlog", example:true, at:new Date(Date.now()-864e5).toISOString(), claim:"bank", verdict:"scam", outcome:"hung_up", flags:["otp","urgent","stay"], notes:"Caller said my card was used in Miami and asked me to read back the code they texted.", answers:{}}]};
+}
+function load(){ try{ var r=localStorage.getItem(STORE); return r?JSON.parse(r):null; }catch(e){ return null; } }
+function save(){ try{ localStorage.setItem(STORE, JSON.stringify(S)); }catch(e){} }
+function $(s){ return document.querySelector(s); }
+function el(tag,a,kids){ var n=document.createElement(tag);
+  if(a) Object.keys(a).forEach(function(k){ var v=a[k]; if(k==="text") n.textContent=v; else if(k.slice(0,2)==="on") n.addEventListener(k.slice(2),v); else if(v===true) n.setAttribute(k,""); else if(v!==false&&v!=null) n.setAttribute(k,v); });
+  (kids||[]).forEach(function(c){ if(c!=null) n.appendChild(typeof c==="string"?document.createTextNode(c):c); }); return n; }
+function toast(m){ var t=$("#toast"); t.textContent=m; t.hidden=false; clearTimeout(toast.t); toast.t=setTimeout(function(){t.hidden=true;},2600); }
+function fmt(iso){ var d=new Date(iso); return d.toLocaleDateString(undefined,{month:"short",day:"numeric"})+", "+d.toLocaleTimeString(undefined,{hour:"numeric",minute:"2-digit"}); }
+function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,6); }
+function go(tab){ S.tab=tab; save(); render(); window.scrollTo(0,0); }
+$("#nav").addEventListener("click",function(e){ var b=e.target.closest("button[data-tab]"); if(b) go(b.dataset.tab); });
+
+// ---------------- scoring ----------------
+var VERDICT={
+  low:{name:"No warning signs yet", say:"Keep listening. Verify before you share anything or pay."},
+  caution:{name:"Be careful", say:"Some warning signs. Don't pay or share details. Verify on your own first."},
+  high:{name:"Likely a scam", say:"Hang up. Call back only on a number you already trust."},
+  scam:{name:"This is a scam", say:"Hang up now. Don't pay, don't share codes, don't call back the number they gave."},
+  verified:{name:"Verified", say:"You confirmed it on your own. Still never share one-time codes."}
+};
+function assess(c){
+  var on=FLAGS.filter(function(f){ return c.flags.indexOf(f.id)>=0; });
+  var hard=on.filter(function(f){ return f.hard; });
+  var score=on.reduce(function(s,f){ return s+(f.w||0); },0);
+  var reasons=on.map(function(f){ return f.t; });
+  if((c.claim==="bank"||c.claim==="gov") && c.flags.indexOf("p2p")>=0) hard=hard.concat([{t:"Asked for Zelle or a wire while claiming to be a bank or agency"}]);
+  if(c.challenge==="fail"){ score+=5; reasons.push("Failed the challenge question"); }
+  if(c.challenge==="refused"){ score+=4; reasons.push("Wouldn't answer the challenge question"); }
+  if(hard.length) return {v:"scam", score:score, reasons:reasons};
+  if(c.callback==="mismatch"){ score+=3; reasons.push("Callback reached someone else or they didn't know about it"); }
+  var confirmed = c.callback==="confirmed" || c.challenge==="pass";
+  if(confirmed && score<5) return {v:"verified", score:score, reasons:reasons.concat([c.callback==="confirmed"?"Confirmed by calling a trusted number":"Passed the challenge question"])};
+  return {v: score>=5?"high":score>=2?"caution":"low", score:score, reasons:reasons};
+}
+
+function render(){
+  document.querySelectorAll("#nav button").forEach(function(b){ if(b.dataset.tab===S.tab) b.setAttribute("aria-current","page"); else b.removeAttribute("aria-current"); });
+  var m=$("#main"); m.innerHTML="";
+  m.appendChild(({call:viewCall, contacts:viewContacts, questions:viewQuestions, log:viewLog}[S.tab]||viewCall)());
+}
+
+// ---------------- live call ----------------
+function viewCall(){
+  var v=el("section",{class:"view"});
+  if(!call){
+    v.appendChild(el("div",{},[el("h2",{text:"Who does the caller say they are?"}), el("p",{class:"muted",text:"Pick one to start. You'll get the right checks for that kind of call."})]));
+    v.appendChild(el("div",{class:"claims"}, Object.keys(CLAIMS).map(function(k){
+      return el("button",{class:"claim",onclick:function(){ call={id:uid(), at:new Date().toISOString(), claim:k, flags:[], challenge:null, contactId:null, callback:null, answers:{}, notes:""}; render(); }},[el("b",{text:CLAIMS[k].name}), el("span",{text:CLAIMS[k].hint})]);
+    })));
+    v.appendChild(el("div",{class:"msg info",text:"Caller ID can be faked, and voices can be cloned. What a caller knows, and whether you can reach them on a number you already trust, is what counts."}));
+    return v;
+  }
+  var C=CLAIMS[call.claim], a=assess(call), V=VERDICT[a.v];
+  v.appendChild(el("div",{class:"row",style:"justify-content:space-between"},[el("div",{},[el("span",{class:"label",text:"Live call"}), el("h2",{text:C.name})]),
+    el("button",{class:"btn quiet",text:"Change",onclick:function(){ call.claim=null; call=null; render(); }})]));
+  v.appendChild(el("div",{class:"risk "+a.v,role:"status","aria-live":"polite"},[
+    el("div",{class:"top"},[el("span",{class:"state",text:V.name}), el("span",{class:"label",text:a.reasons.length+" signal"+(a.reasons.length===1?"":"s")})]),
+    el("div",{class:"gauge","aria-hidden":"true"},[el("i"),el("i"),el("i"),el("i")]),
+    el("p",{class:"say",text:a.v==="low"?C.say:V.say})
+  ]));
+
+  // verification
+  var ver=el("div",{class:"card"},[el("h3",{text:"Verify it yourself"}), el("ol",{class:"steps"}, C.steps.map(function(s){ return el("li",{},[el("span",{text:s})]); }))]);
+  if(call.claim==="family"){
+    var sel=el("select",{id:"cc-contact"},[el("option",{value:"",text:"Choose who they say they are"})].concat(S.contacts.map(function(c){ var o=el("option",{value:c.id,text:c.name+" ("+c.rel+")"}); if(call.contactId===c.id) o.selected=true; return o; })));
+    sel.addEventListener("change",function(){ call.contactId=sel.value||null; call.challenge=null; render(); });
+    ver.appendChild(el("label",{class:"f",for:"cc-contact"},["Who do they say they are?", sel]));
+    var ct=S.contacts.filter(function(c){return c.id===call.contactId;})[0];
+    if(ct){
+      var reveal=el("button",{class:"btn quiet",text:"Show expected answer",onclick:function(e){ e.currentTarget.replaceWith(el("span",{class:"a",text:"Expected: "+ct.a})); }});
+      ver.appendChild(el("div",{class:"challenge"},[el("span",{class:"label",text:"Ask them"}), el("span",{class:"q",text:ct.q}), reveal,
+        el("div",{class:"row"},[
+          el("button",{class:"btn safe",text:"Answered right",onclick:function(){ call.challenge="pass"; render(); }}),
+          el("button",{class:"btn danger",text:"Wrong answer",onclick:function(){ call.challenge="fail"; render(); }}),
+          el("button",{class:"btn quiet",text:"Wouldn't answer",onclick:function(){ call.challenge="refused"; render(); }})]),
+        el("p",{class:"muted",style:"font-size:.88rem",text:"Saved number: "+(ct.phone||"none")+". Call it after you hang up."})]));
+    } else if(!S.contacts.length){ ver.appendChild(el("div",{class:"msg caution"},["You haven't set up any contacts yet. ", el("button",{class:"btn quiet",text:"Add one",onclick:function(){go("contacts");}})])); }
+  }
+  ver.appendChild(el("div",{class:"challenge"},[el("span",{class:"q",text:"After you hung up and called a number you already trust:"}),
+    el("div",{class:"row"},[
+      el("button",{class:"btn safe",text:"They confirmed it",onclick:function(){ call.callback="confirmed"; render(); }}),
+      el("button",{class:"btn danger",text:"They knew nothing about it",onclick:function(){ call.callback="mismatch"; render(); }}),
+      call.callback ? el("button",{class:"btn quiet",text:"Undo",onclick:function(){ call.callback=null; render(); }}) : null])]));
+  v.appendChild(ver);
+
+  // flags
+  v.appendChild(el("div",{class:"card"},[el("h3",{text:"Tap anything the caller has done"}),
+    el("div",{class:"flags"}, FLAGS.map(function(f){
+      var on=call.flags.indexOf(f.id)>=0;
+      return el("button",{class:"flag"+(f.hard?" hard":""),"aria-pressed":on?"true":"false",onclick:function(){ var i=call.flags.indexOf(f.id); if(i>=0) call.flags.splice(i,1); else call.flags.push(f.id); render(); }},
+        [el("span",{class:"box",text:on?"✓":""}), el("span",{},[f.t, el("small",{text:f.d})])]);
+    }))]));
+
+  // questions
+  if(S.questions.length){
+    v.appendChild(el("div",{class:"card"},[el("h3",{text:"Ask the caller"}), el("p",{class:"muted",style:"font-size:.9rem",text:"Write down what they say. Real callers answer easily. Scammers dodge, get angry or push you to hurry."}),
+      el("div",{class:"qa"}, S.questions.map(function(q,i){ var inp=el("input",{type:"text",id:"cq-"+i,value:call.answers[q]||""}); inp.addEventListener("input",function(){ call.answers[q]=inp.value; }); return el("label",{class:"f",for:"cq-"+i},[q,inp]); }))]));
+  }
+
+  var notes=el("textarea",{id:"cc-notes",placeholder:"What did they say? Names, numbers, amounts."}); notes.value=call.notes; notes.addEventListener("input",function(){ call.notes=notes.value; });
+  var outcome=el("select",{id:"cc-out"},[["hung_up","I hung up"],["verified","I verified it and continued"],["they_hung_up","They hung up"],["paid","I already paid or shared information"]].map(function(o){ return el("option",{value:o[0],text:o[1]}); }));
+  v.appendChild(el("div",{class:"card"},[el("h3",{text:"Finish and save"}), el("label",{class:"f",for:"cc-notes"},["Notes",notes]), el("label",{class:"f",for:"cc-out"},["How did it end?",outcome]),
+    el("div",{class:"row"},[el("button",{class:"btn",text:"Save to call log",onclick:function(){
+      var a2=assess(call); var e={id:call.id, at:call.at, claim:call.claim, verdict:a2.v, outcome:outcome.value, flags:call.flags.slice(), challenge:call.challenge, callback:call.callback, notes:call.notes, answers:Object.assign({},call.answers)};
+      S.log.unshift(e); save(); call=null; toast("Saved to call log"); go("log");
+      if(e.outcome==="paid") setTimeout(function(){ toast("Call your bank's fraud line now. Speed matters for recovering money."); },2700);
+    }}), el("button",{class:"btn quiet",text:"Discard",onclick:function(){ call=null; render(); }})])]));
+  return v;
+}
+
+// ---------------- contacts ----------------
+function viewContacts(){
+  var v=el("section",{class:"view"});
+  v.appendChild(el("div",{},[el("h2",{text:"Trusted contacts"}), el("p",{class:"muted",text:"Set up a challenge question with each person ahead of time, in person if you can. Pick something that has never been posted online. A family code word works too."})]));
+  var name=el("input",{type:"text",id:"ct-name"}), rel=el("input",{type:"text",id:"ct-rel",placeholder:"e.g. Grandson"}), phone=el("input",{type:"tel",id:"ct-phone"});
+  var q=el("input",{type:"text",id:"ct-q",placeholder:"e.g. What's our family code word?"}), ans=el("input",{type:"text",id:"ct-a"}), err=el("div");
+  v.appendChild(el("div",{class:"card"},[el("h3",{text:"Add a contact"}),
+    el("div",{class:"grid2"},[el("label",{class:"f",for:"ct-name"},["Name",name]), el("label",{class:"f",for:"ct-rel"},["Relationship",rel])]),
+    el("label",{class:"f",for:"ct-phone"},["Their real number",el("small",{text:"The number you call them on, saved from a time you knew it was them"}),phone]),
+    el("label",{class:"f",for:"ct-q"},["Challenge question",q]), el("label",{class:"f",for:"ct-a"},["Expected answer",ans]), err,
+    el("button",{class:"btn",text:"Save contact",onclick:function(){
+      err.innerHTML="";
+      if(!name.value.trim()||!q.value.trim()||!ans.value.trim()){ err.appendChild(el("div",{class:"msg caution",text:"Add a name, a challenge question and its answer."})); return; }
+      S.contacts.push({id:uid(), name:name.value.trim(), rel:rel.value.trim()||"Contact", phone:phone.value.trim(), q:q.value.trim(), a:ans.value.trim()}); save(); toast("Contact saved"); render();
+    }})]));
+  if(!S.contacts.length) v.appendChild(el("div",{class:"card empty",text:"No contacts yet."}));
+  S.contacts.forEach(function(c){
+    v.appendChild(el("div",{class:"contact"},[
+      el("div",{class:"row",style:"justify-content:space-between"},[el("h3",{},[c.name+" · "+c.rel, c.example?el("span",{class:"tag",text:"Example"}):null]),
+        el("button",{class:"btn quiet",text:"Remove",onclick:function(){ S.contacts=S.contacts.filter(function(x){return x.id!==c.id;}); save(); render(); }})]),
+      el("p",{class:"muted",text:(c.phone||"No number saved")+" · Q: "+c.q})]));
+  });
+  v.appendChild(el("div",{class:"msg info",text:"Answers are stored only in this browser. Anyone who can open this browser can read them, so don't reuse passwords or PINs as answers."}));
+  return v;
+}
+
+// ---------------- questions ----------------
+function viewQuestions(){
+  var v=el("section",{class:"view"});
+  v.appendChild(el("div",{},[el("h2",{text:"Questions for callers"}), el("p",{class:"muted",text:"These appear during every live call. Paste your own list, such as your questionnaire, one question per line."})]));
+  var ta=el("textarea",{id:"qs",style:"min-height:220px"}); ta.value=S.questions.join("\n");
+  v.appendChild(el("div",{class:"card"},[el("label",{class:"f",for:"qs"},["One question per line",ta]),
+    el("div",{class:"row"},[el("button",{class:"btn",text:"Save questions",onclick:function(){ S.questions=ta.value.split(/\n/).map(function(s){return s.trim();}).filter(Boolean).slice(0,30); save(); toast(S.questions.length+" questions saved"); }}),
+      el("button",{class:"btn quiet",text:"Restore defaults",onclick:function(){ S.questions=DEFAULT_QUESTIONS.slice(); save(); render(); }})])]));
+  v.appendChild(el("div",{class:"msg info",text:"Good questions are ones a real caller can answer easily and you can check on your own, like a callback number you can compare with the official one."}));
+  return v;
+}
+
+// ---------------- log ----------------
+function reportText(e){
+  var f=FLAGS.filter(function(x){return e.flags.indexOf(x.id)>=0;}).map(function(x){return "- "+x.t;});
+  var ans=Object.keys(e.answers||{}).filter(function(k){return e.answers[k];}).map(function(k){return "- "+k+" "+e.answers[k];});
+  return ["Suspicious call report","When: "+fmt(e.at),"Caller claimed to be: "+CLAIMS[e.claim].name,"Assessment: "+VERDICT[e.verdict].name,
+    f.length?"Warning signs:\n"+f.join("\n"):"Warning signs: none recorded", ans.length?"Caller's answers:\n"+ans.join("\n"):"", e.notes?"Notes: "+e.notes:""].filter(Boolean).join("\n");
+}
+function viewLog(){
+  var v=el("section",{class:"view"});
+  v.appendChild(el("div",{},[el("h2",{text:"Call log"}), el("p",{class:"muted",text:"Copy a report to send to your bank or the FTC."})]));
+  if(!S.log.length){ v.appendChild(el("div",{class:"card empty",text:"No calls logged yet."})); return v; }
+  var OUT={hung_up:"I hung up", verified:"Verified and continued", they_hung_up:"They hung up", paid:"Paid or shared information"};
+  v.appendChild(el("div",{class:"log"}, S.log.map(function(e){
+    return el("div",{class:"entry"},[
+      el("div",{class:"top"},[el("h3",{},[CLAIMS[e.claim].name, e.example?el("span",{class:"tag",text:"Example"}):null]), el("span",{class:"pill p-"+e.verdict,text:VERDICT[e.verdict].name})]),
+      el("p",{class:"muted",style:"font-size:.9rem",text:fmt(e.at)+" · "+OUT[e.outcome]+" · "+e.flags.length+" warning sign"+(e.flags.length===1?"":"s")}),
+      e.notes?el("p",{text:e.notes}):null,
+      e.outcome==="paid"?el("div",{class:"msg danger",text:"Call your bank's fraud line and report it at reportfraud.ftc.gov. Card payments and recent transfers can sometimes be stopped."}):null,
+      el("div",{class:"row"},[
+        el("button",{class:"btn ghost",text:"Copy report",onclick:function(){ var t=reportText(e); try{ navigator.clipboard.writeText(t).then(function(){toast("Report copied");},function(){toast("Copy was blocked here.");}); }catch(x){ toast("Copy was blocked here."); } }}),
+        el("a",{class:"btn quiet",href:"https://reportfraud.ftc.gov/",target:"_blank",rel:"noopener",text:"Report to FTC ↗"}),
+        el("button",{class:"btn quiet",text:"Delete",onclick:function(){ S.log=S.log.filter(function(x){return x.id!==e.id;}); save(); render(); }})])]);
+  })));
+  return v;
+}
+render();
+})();
+</script>

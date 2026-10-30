@@ -1,0 +1,426 @@
+<title>BrainLock Campaign</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root{
+  --paper:#F3F6F4; --panel:#FFFFFF; --ink:#14201C; --muted:#56635D; --line:#D5DDD8;
+  --probe:#C2362F; --target:#2F5BD3; --irr:#8A958F; --accent:#0F6B57; --accent-ink:#FFFFFF;
+  --grid:#E3E9E5; --warn-bg:#FFF4E5; --warn-ink:#7A4B00;
+  --display:"Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --body:"IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --mono:"IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --paper:#0E1513; --panel:#16201D; --ink:#E6EEEA; --muted:#9AA8A1; --line:#2A3833;
+    --probe:#F0645B; --target:#7C9DFF; --irr:#76837D; --accent:#3FBF9C; --accent-ink:#06120E;
+    --grid:#1F2B27; --warn-bg:#2A2111; --warn-ink:#F2C47A;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --paper:#0E1513; --panel:#16201D; --ink:#E6EEEA; --muted:#9AA8A1; --line:#2A3833;
+  --probe:#F0645B; --target:#7C9DFF; --irr:#76837D; --accent:#3FBF9C; --accent-ink:#06120E;
+  --grid:#1F2B27; --warn-bg:#2A2111; --warn-ink:#F2C47A;
+}
+*{box-sizing:border-box}
+body{background:var(--paper);color:var(--ink);font:16px/1.6 var(--body);padding-inline:20px}
+.wrap{max-width:1120px;margin-inline:auto}
+h1,h2,h3{font-family:var(--display);text-wrap:balance;line-height:1.1;margin:0}
+h1{font-size:clamp(2.3rem,5.4vw,4.1rem);font-weight:800;letter-spacing:-.02em}
+h2{font-size:clamp(1.6rem,3vw,2.3rem);font-weight:700;letter-spacing:-.01em}
+h3{font-size:1.15rem;font-weight:700}
+p{margin:0;max-width:65ch}
+a{color:var(--accent)}
+.label{font:500 .74rem/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.mono{font-family:var(--mono)}
+.num{font-variant-numeric:tabular-nums}
+
+/* top bar */
+.top{display:flex;justify-content:space-between;align-items:center;gap:16px;padding-block:18px;border-bottom:1px solid var(--line)}
+.brand{font:800 1.25rem/1 var(--display);letter-spacing:-.01em;display:flex;align-items:center;gap:10px}
+.brand svg{width:26px;height:26px}
+.status{font:500 .78rem/1 var(--mono);color:var(--warn-ink);background:var(--warn-bg);padding:7px 10px;border-radius:4px}
+
+/* hero */
+.hero{display:grid;grid-template-columns:1.05fr 1fr;gap:48px;align-items:center;padding-block:56px 40px}
+.hero-copy{display:grid;gap:22px}
+.lede{font-size:1.15rem;color:var(--muted)}
+.cta-row{display:flex;flex-wrap:wrap;gap:12px}
+.btn{display:inline-flex;align-items:center;gap:8px;font:600 1rem/1 var(--body);padding:14px 20px;border-radius:6px;text-decoration:none;border:1.5px solid var(--accent)}
+.btn.primary{background:var(--accent);color:var(--accent-ink)}
+.btn.ghost{color:var(--accent);background:transparent}
+.btn:focus-visible{outline:3px solid var(--target);outline-offset:2px}
+
+.scope{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:18px 18px 12px}
+.scope-head{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-bottom:6px}
+.scope svg{width:100%;height:auto;display:block}
+.legend{display:flex;flex-wrap:wrap;gap:16px;margin-top:8px;font:.82rem/1.3 var(--mono);color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{width:18px;height:3px;border-radius:2px;display:inline-block}
+.caption{font-size:.8rem;color:var(--muted);margin-top:8px}
+@media (prefers-reduced-motion:no-preference){
+  .trace{stroke-dasharray:1400;stroke-dashoffset:0;animation:draw 2.2s ease-out both}
+  @keyframes draw{from{stroke-dashoffset:1400}to{stroke-dashoffset:0}}
+}
+
+/* goal meter */
+.goal{display:grid;grid-template-columns:auto 1fr auto;gap:18px 28px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:22px 24px;margin-bottom:64px}
+.goal .big{font:800 2.4rem/1 var(--display)}
+.meter{height:12px;background:var(--grid);border-radius:6px;overflow:hidden;position:relative}
+.meter .fill{height:100%;width:0;background:var(--accent)}
+.ticks{display:flex;justify-content:space-between;font:.72rem/1 var(--mono);color:var(--muted);margin-top:8px}
+.goal .facts{display:flex;gap:28px}
+.goal .facts div{display:grid;gap:4px}
+.goal .facts b{font:600 1.2rem/1 var(--mono)}
+
+section{padding-block:56px;border-top:1px solid var(--line)}
+.sec-head{display:grid;gap:12px;margin-bottom:32px}
+
+/* stimulus classes */
+.classes{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.cls{display:grid;gap:10px;padding-top:14px;border-top:4px solid var(--c)}
+.cls .word{font:500 1.5rem/1 var(--mono);color:var(--c)}
+.flow{margin-top:36px;display:grid;grid-template-columns:repeat(5,1fr);gap:0;counter-reset:s}
+.flow li{list-style:none;padding:14px 14px 14px 0;border-top:1px solid var(--line);display:grid;gap:6px;counter-increment:s}
+.flow li::before{content:"Step " counter(s);font:500 .72rem/1 var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--accent)}
+.flow{padding:0}
+
+/* does / doesn't */
+.split{display:grid;grid-template-columns:1fr 1fr;gap:32px}
+.list{display:grid;gap:14px;padding:0;margin:0}
+.list li{list-style:none;display:grid;grid-template-columns:22px 1fr;gap:10px}
+.list li::before{font:600 1rem/1.5 var(--mono)}
+.yes li::before{content:"+";color:var(--accent)}
+.no li::before{content:"−";color:var(--probe)}
+
+/* results table */
+.tbl-wrap{overflow-x:auto;margin-top:24px}
+table{border-collapse:collapse;width:100%;min-width:480px;font-variant-numeric:tabular-nums}
+th,td{text-align:left;padding:12px 14px;border-bottom:1px solid var(--line)}
+th{font:500 .74rem/1 var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+td.n{font-family:var(--mono);text-align:right}
+th.n{text-align:right}
+.zero{color:var(--accent);font-weight:600}
+
+/* budget */
+.budget-bar{display:flex;height:34px;border-radius:6px;overflow:hidden;margin-block:8px 24px}
+.budget-bar div{background:var(--c);min-width:4px}
+.budget{display:grid;grid-template-columns:repeat(2,1fr);gap:4px 40px}
+.brow{display:grid;grid-template-columns:14px 1fr auto;gap:12px;align-items:baseline;padding-block:12px;border-bottom:1px solid var(--line)}
+.brow i{width:12px;height:12px;border-radius:2px;background:var(--c);transform:translateY(1px)}
+.brow b{font:500 1rem/1 var(--mono)}
+.brow small{display:block;color:var(--muted);font-size:.86rem;margin-top:4px}
+
+/* milestones */
+.timeline{display:grid;grid-template-columns:repeat(4,1fr);gap:24px}
+.ms{display:grid;gap:8px;align-content:start}
+.ms .when{font:500 .8rem/1 var(--mono);color:var(--accent)}
+.ms p{color:var(--muted);font-size:.95rem}
+
+/* rewards */
+.tiers{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.tier{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:22px;display:grid;gap:12px;align-content:start}
+.tier .price{font:800 2rem/1 var(--display)}
+.tier ul{margin:0;padding-left:18px;color:var(--muted);font-size:.95rem;display:grid;gap:6px}
+.tier .limit{font:.78rem/1 var(--mono);color:var(--muted)}
+.tier.feature{border:2px solid var(--accent)}
+
+/* risks + faq */
+.risks{display:grid;grid-template-columns:repeat(2,1fr);gap:24px 40px}
+.risk{display:grid;gap:6px}
+.risk p{color:var(--muted);font-size:.95rem}
+details{border-bottom:1px solid var(--line);padding-block:16px}
+summary{cursor:pointer;font-weight:600;font-size:1.05rem}
+summary:focus-visible{outline:3px solid var(--target);outline-offset:3px}
+details p{margin-top:10px;color:var(--muted)}
+
+.closing{display:grid;gap:18px;justify-items:start;padding-block:64px}
+footer{border-top:1px solid var(--line);padding-block:28px 40px;font-size:.82rem;color:var(--muted);display:grid;gap:10px}
+
+@media (max-width:900px){
+  .hero,.split{grid-template-columns:1fr}
+  .classes,.tiers{grid-template-columns:1fr}
+  .timeline{grid-template-columns:1fr 1fr}
+  .flow{grid-template-columns:1fr}
+  .budget,.risks{grid-template-columns:1fr}
+  .goal{grid-template-columns:1fr}
+  .goal .facts{flex-wrap:wrap}
+}
+@media (max-width:520px){ .timeline{grid-template-columns:1fr} .top .status{display:none} }
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <svg viewBox="0 0 26 26" aria-hidden="true"><rect width="26" height="26" rx="6" fill="var(--ink)"/><path d="M3 15 C7 15 7 15 9 15 S11 5 13 5 S15 19 17 19 S19 13 23 13" fill="none" stroke="var(--probe)" stroke-width="2.2" stroke-linecap="round"/></svg>
+      BrainLock
+    </div>
+    <span class="status">Pre-launch · campaign not yet live</span>
+  </header>
+
+  <div class="hero">
+    <div class="hero-copy">
+      <span class="label">Open EEG recognition-testing platform</span>
+      <h1>Measure what the brain recognizes, with the uncertainty shown.</h1>
+      <p class="lede">BrainLock is building an open, auditable EEG platform for concealed-information research. It detects the P300 response a brain produces about 300 to 800 ms after seeing a detail it knows, and reports "can't tell" whenever the data can't support a conclusion. We are raising $5 million to take it from a working prototype to a validated research instrument.</p>
+      <div class="cta-row">
+        <a class="btn primary" href="#rewards">See backer rewards</a>
+        <a class="btn ghost" href="https://www.youtube.com/watch?v=ZpInSCtgBps" target="_blank" rel="noopener">Watch the video ↗</a>
+      </div>
+    </div>
+
+    <figure class="scope" style="margin:0">
+      <div class="scope-head"><span class="label">Averaged ERP · channel Pz</span><span class="mono" style="font-size:.78rem;color:var(--muted)">µV vs ms</span></div>
+      <svg id="erp" viewBox="0 0 520 300" role="img" aria-label="Averaged brain responses: the probe and target traces rise to a peak near 450 milliseconds, while the irrelevant trace stays flat."></svg>
+      <div class="legend">
+        <span><i style="background:var(--probe)"></i>Probe (crime detail)</span>
+        <span><i style="background:var(--target)"></i>Target (known)</span>
+        <span><i style="background:var(--irr)"></i>Irrelevant</span>
+      </div>
+      <figcaption class="caption">Illustration of an "information present" result: the probe response matches the known target, not the irrelevants. Drawn from the model in our prototype's simulator.</figcaption>
+    </figure>
+  </div>
+
+  <div class="goal" aria-label="Funding goal">
+    <div>
+      <div class="label">Goal</div>
+      <div class="big num">$5,000,000</div>
+    </div>
+    <div>
+      <div class="meter" role="progressbar" aria-valuemin="0" aria-valuemax="5000000" aria-valuenow="0" aria-label="Raised so far"><div class="fill"></div></div>
+      <div class="ticks num"><span>$0</span><span>$1.25M</span><span>$2.5M</span><span>$3.75M</span><span>$5M</span></div>
+    </div>
+    <div class="facts">
+      <div><span class="label">Raised</span><b class="num">$0</b></div>
+      <div><span class="label">Backers</span><b class="num">0</b></div>
+      <div><span class="label">Model</span><b>Rewards</b></div>
+    </div>
+  </div>
+
+  <section id="how">
+    <div class="sec-head">
+      <span class="label">How it works</span>
+      <h2>Three kinds of words, one question</h2>
+      <p>The subject watches a fast series of words on a screen while a headset records their brainwaves. There are three kinds of stimulus. The test asks one thing: does the brain treat the probe like something it knows or like something it has never seen?</p>
+    </div>
+    <div class="classes">
+      <div class="cls" style="--c:var(--probe)">
+        <span class="label">Probe</span><span class="word">crowbar</span>
+        <p>A true detail that only someone with inside knowledge would recognize. It must never have been made public.</p>
+      </div>
+      <div class="cls" style="--c:var(--target)">
+        <span class="label">Target</span><span class="word">screwdriver</span>
+        <p>A detail the subject is taught before the test. It gives a reliable "known" response to compare against.</p>
+      </div>
+      <div class="cls" style="--c:var(--irr)">
+        <span class="label">Irrelevant</span><span class="word">hammer · wrench · pliers</span>
+        <p>Plausible but wrong details. They give the "unknown" response. There are always at least twice as many as probes.</p>
+      </div>
+    </div>
+    <ol class="flow">
+      <li><h3>Lock the protocol</h3><p>Probes are vetted and hashed before any recording, so no one can change them after seeing results.</p></li>
+      <li><h3>Consent</h3><p>The subject gets a plain-language briefing and can stop at any time.</p></li>
+      <li><h3>Record</h3><p>About 180 trials at a 3-second pace, with live signal-quality checks.</p></li>
+      <li><h3>Analyze</h3><p>Two independent bootstrap tests. Both must agree before the platform reports "information present".</p></li>
+      <li><h3>Report</h3><p>A signed report with waveforms, confidence figures and trial counts, reproducible from the raw data.</p></li>
+    </ol>
+  </section>
+
+  <section>
+    <div class="sec-head">
+      <span class="label">Where we stand</span>
+      <h2>The prototype already refuses to guess</h2>
+      <p>Our open-source analysis pipeline runs today on simulated EEG. In 40 simulated sessions per group, it flagged no subject who lacked the knowledge. When the data was weak, it said so. Real-world accuracy must still be measured, and that measurement is what this campaign pays for.</p>
+    </div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Simulated subject</th><th class="n">Information present</th><th class="n">Indeterminate</th><th class="n">Information absent</th></tr></thead>
+        <tbody>
+          <tr><td>Knows the probe</td><td class="n">33</td><td class="n">7</td><td class="n">0</td></tr>
+          <tr><td>Does not know the probe</td><td class="n zero">0</td><td class="n">39</td><td class="n">1</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="caption">Synthetic data, 1 probe × 30 repetitions per session. These are not accuracy figures for real people.</p>
+  </section>
+
+  <section>
+    <div class="split">
+      <div class="sec-head" style="margin:0">
+        <span class="label">What it does</span>
+        <h2>Built for research, with the limits in plain view</h2>
+      </div>
+      <div></div>
+      <ul class="list yes">
+        <li>Detects whether specific details produce a recognition response (P300)</li>
+        <li>Reports confidence, trial counts and rejected trials with every result</li>
+        <li>Treats "indeterminate" as a normal, visible outcome</li>
+        <li>Keeps neural data on the local machine by default, encrypted and deletable</li>
+        <li>Lets independent reviewers re-run any analysis from the raw recording</li>
+      </ul>
+      <ul class="list no">
+        <li>Does not detect lies, guilt, intent or general memories</li>
+        <li>Cannot screen people for unknown plans. Every test needs specific, non-public details</li>
+        <li>Is not validated for court or employment use, and we will not sell it for either until independent field studies support it</li>
+        <li>Cannot tell whether someone learned a detail innocently, from the news or during questioning</li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="budget">
+    <div class="sec-head">
+      <span class="label">Use of funds · draft</span>
+      <h2>Where the $5 million goes</h2>
+      <p>This allocation is a planning draft. We will publish the final budget before launch and report spending against it every quarter.</p>
+    </div>
+    <div class="budget-bar" id="bbar" aria-hidden="true"></div>
+    <div class="budget" id="blist"></div>
+  </section>
+
+  <section>
+    <div class="sec-head">
+      <span class="label">Milestones · 24 months</span>
+      <h2>From prototype to published validation</h2>
+    </div>
+    <div class="timeline">
+      <div class="ms"><span class="when">Months 0–4</span><h3>Acquisition</h3><p>Live EEG streaming, frame-locked stimulus presenter, BIDS data format, and photodiode timing checks on every hardware setup.</p></div>
+      <div class="ms"><span class="when">Months 4–10</span><h3>Examiner app</h3><p>A desktop app with a protocol builder, probe-provenance records, consent flows and signed reports.</p></div>
+      <div class="ms"><span class="when">Months 8–20</span><h3>Validation study</h3><p>A pre-registered, IRB-approved mock-scenario study with a university partner and blinded examiners, including countermeasure tests.</p></div>
+      <div class="ms"><span class="when">Months 18–24</span><h3>Publish and release</h3><p>Submit results for peer review whatever they show. Version 1.0 release for research labs.</p></div>
+    </div>
+  </section>
+
+  <section id="rewards">
+    <div class="sec-head">
+      <span class="label">Backer rewards</span>
+      <h2>Back the build</h2>
+      <p>This is a rewards campaign. Backers receive the items listed. They do not receive equity, profit shares or financial returns.</p>
+    </div>
+    <div class="tiers">
+      <div class="tier">
+        <span class="label">Supporter</span><span class="price num">$25</span>
+        <ul><li>Your name on the project's supporters page</li><li>Monthly build updates and quarterly spending reports</li></ul>
+      </div>
+      <div class="tier">
+        <span class="label">Insider</span><span class="price num">$100</span>
+        <ul><li>Everything in Supporter</li><li>Early access to each software release</li><li>Recorded course: "How EEG recognition tests work, and where they fail"</li></ul>
+      </div>
+      <div class="tier feature">
+        <span class="label">Researcher</span><span class="price num">$1,500</span>
+        <ul><li>Everything in Insider</li><li>8-channel research EEG headset with a Pz electrode</li><li>1-year BrainLock research license</li></ul>
+        <span class="limit">Limited to 500 · ships after the Acquisition milestone</span>
+      </div>
+      <div class="tier">
+        <span class="label">Lab partner</span><span class="price num">$10,000</span>
+        <ul><li>3 research headsets and 3-year multi-seat license</li><li>Onboarding workshop for your team</li><li>Acknowledgement in the validation publication</li></ul>
+        <span class="limit">Limited to 50</span>
+      </div>
+      <div class="tier">
+        <span class="label">Institutional pilot</span><span class="price num">$50,000</span>
+        <ul><li>Everything in Lab partner</li><li>A pilot deployment with our engineers on site</li><li>Input into the validation study's design</li></ul>
+        <span class="limit">Limited to 10 · subject to research ethics review</span>
+      </div>
+      <div class="tier">
+        <span class="label">Any amount</span><span class="price">Your call</span>
+        <ul><li>Support the open-source pipeline with no reward</li><li>Pledges go through the crowdfunding platform, not this page</li></ul>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head">
+      <span class="label">Risks and challenges</span>
+      <h2>What could go wrong</h2>
+    </div>
+    <div class="risks">
+      <div class="risk"><h3>The science is contested</h3><p>Published P300 recognition tests report high lab accuracy, but independent replications and field results vary. Our validation study may show lower accuracy than hoped. We will publish the results either way.</p></div>
+      <div class="risk"><h3>Countermeasures</h3><p>Studies show trained subjects can weaken P300 tests. We plan to measure this directly rather than claim immunity.</p></div>
+      <div class="risk"><h3>Hardware delivery</h3><p>Headset rewards depend on supplier lead times and on passing our timing-accuracy checks. We will not ship a headset that fails them.</p></div>
+      <div class="risk"><h3>Regulation and IP</h3><p>Neural-data privacy laws are changing quickly, and prior patents exist in this field. Legal review and a freedom-to-operate analysis are funded in the budget.</p></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head">
+      <span class="label">Questions</span>
+      <h2>Frequently asked</h2>
+    </div>
+    <details><summary>Is this an investment?</summary><p>No. It is a rewards campaign. Backers get the rewards listed and nothing else: no shares, no tokens, no profit rights. If we ever offer equity, it will go through a registered crowdfunding portal with the required disclosures.</p></details>
+    <details><summary>Is this the same as "Brain Fingerprinting"?</summary><p>It uses the same general scientific method, the P300 concealed-information test, which is published in the research literature. BrainLock is an independent project with no affiliation with Brain Fingerprinting, LLC or Dr. Lawrence Farwell.</p></details>
+    <details><summary>Can police or employers use it?</summary><p>Not from us. The platform is for research and education until independent, peer-reviewed field studies show it is reliable enough for high-stakes use. Research licenses prohibit forensic and employment decisions.</p></details>
+    <details><summary>What happens if the campaign falls short?</summary><p>On an all-or-nothing platform, backers are not charged unless the goal is reached. If the campaign runs on a flexible-funding platform, we will say so before launch and publish a reduced-scope plan.</p></details>
+    <details><summary>Is the software open source?</summary><p>The analysis pipeline is open source today, so anyone can inspect how a result is reached. The examiner desktop app will be licensed to fund ongoing maintenance.</p></details>
+  </section>
+
+  <div class="closing">
+    <span class="label">Launching soon</span>
+    <h2>Help build a recognition test that shows its uncertainty.</h2>
+    <a class="btn primary" href="https://www.youtube.com/watch?v=ZpInSCtgBps" target="_blank" rel="noopener">Watch "Brain Lock 5" ↗</a>
+  </div>
+
+  <footer>
+    <p>BrainLock is a research project in development. Nothing on this page is an offer to sell securities or a solicitation of investment. Rewards, prices and dates are planned and may change before launch. The results shown come from simulated data.</p>
+    <p class="mono">© 2026 BrainLock</p>
+  </footer>
+</div>
+
+<script>
+(function(){
+  // ERP traces: gaussian P300 bump plus a small N100/P200 complex, same shape as the prototype simulator.
+  var svg=document.getElementById('erp'), W=520,H=300, L=44,R=12,T=14,B=34;
+  var t0=-200,t1=1000, vmin=-4, vmax=10;
+  function x(t){return L+(t-t0)/(t1-t0)*(W-L-R)}
+  function y(v){return T+(vmax-v)/(vmax-vmin)*(H-T-B)}
+  function erp(t,amp,seed){
+    var early=-1.6*Math.exp(-.5*Math.pow((t-100)/30,2))+1.4*Math.exp(-.5*Math.pow((t-190)/40,2));
+    var p3=amp*Math.exp(-.5*Math.pow((t-450)/120,2));
+    var wob=.35*Math.sin(t/37+seed)+.25*Math.sin(t/71+seed*2);
+    return t<0? wob*.6 : early+p3+wob;
+  }
+  function path(amp,seed){
+    var d='';for(var t=t0;t<=t1;t+=4){d+=(t===t0?'M':'L')+x(t).toFixed(1)+' '+y(erp(t,amp,seed)).toFixed(1)}return d;
+  }
+  var ns='http://www.w3.org/2000/svg', out='';
+  [-200,0,200,400,600,800,1000].forEach(function(t){
+    out+='<line x1="'+x(t)+'" x2="'+x(t)+'" y1="'+T+'" y2="'+(H-B)+'" stroke="var(--grid)" stroke-width="1"/>';
+    out+='<text x="'+x(t)+'" y="'+(H-B+18)+'" fill="var(--muted)" font-family="IBM Plex Mono, monospace" font-size="11" text-anchor="middle">'+t+'</text>';
+  });
+  [-4,0,4,8].forEach(function(v){
+    out+='<line x1="'+L+'" x2="'+(W-R)+'" y1="'+y(v)+'" y2="'+y(v)+'" stroke="var(--grid)" stroke-width="1"/>';
+    out+='<text x="'+(L-8)+'" y="'+(y(v)+4)+'" fill="var(--muted)" font-family="IBM Plex Mono, monospace" font-size="11" text-anchor="end">'+v+'</text>';
+  });
+  out+='<rect x="'+x(300)+'" y="'+T+'" width="'+(x(900)-x(300))+'" height="'+(H-T-B)+'" fill="var(--accent)" opacity=".07"/>';
+  out+='<text x="'+(x(300)+6)+'" y="'+(T+14)+'" fill="var(--accent)" font-family="IBM Plex Mono, monospace" font-size="10.5">analysis window</text>';
+  out+='<line x1="'+x(0)+'" x2="'+x(0)+'" y1="'+T+'" y2="'+(H-B)+'" stroke="var(--ink)" stroke-width="1" stroke-dasharray="3 3"/>';
+  out+='<text x="'+(x(0)+5)+'" y="'+(H-B-6)+'" fill="var(--ink)" font-family="IBM Plex Mono, monospace" font-size="10.5">stimulus</text>';
+  out+='<path class="trace" d="'+path(0,1.3)+'" fill="none" stroke="var(--irr)" stroke-width="2"/>';
+  out+='<path class="trace" d="'+path(7.2,2.1)+'" fill="none" stroke="var(--target)" stroke-width="2.2"/>';
+  out+='<path class="trace" d="'+path(8,0.4)+'" fill="none" stroke="var(--probe)" stroke-width="2.6"/>';
+  out+='<text x="'+(x(450)+4)+'" y="'+(y(8.6)-6)+'" fill="var(--probe)" font-family="IBM Plex Mono, monospace" font-size="11" font-weight="500">P300</text>';
+  svg.innerHTML=out;
+
+  // Budget: one source of truth for the bar and the list.
+  var items=[
+    ['Software platform','Acquisition, examiner app, analysis pipeline, 18 months of engineering',1400000,'var(--target)'],
+    ['Validation study','IRB, pre-registration, university partner, 200 participants, blinded examiners',1100000,'var(--probe)'],
+    ['Contingency','About 12% reserve for hardware cost swings and study delays',600000,'var(--irr)'],
+    ['Hardware and timing','Headset integration, photodiode timing rigs, reward headsets for early tiers',600000,'var(--accent)'],
+    ['Security and privacy','Encryption, penetration test, neural-data privacy compliance',500000,'#B07A12'],
+    ['Platform fees and fulfilment','Crowdfunding and payment fees (about 8%), shipping',450000,'#7A5CC2'],
+    ['Legal and IP','Freedom-to-operate review, trademark, license terms',350000,'#3E8FA8']
+  ];
+  var total=items.reduce(function(s,i){return s+i[2]},0);
+  var bar=document.getElementById('bbar'), list=document.getElementById('blist');
+  items.forEach(function(i){
+    var seg=document.createElement('div');seg.style.setProperty('--c',i[3]);seg.style.flex=i[2];seg.title=i[0];bar.appendChild(seg);
+    var row=document.createElement('div');row.className='brow';row.style.setProperty('--c',i[3]);
+    var sw=document.createElement('i');
+    var mid=document.createElement('div');var nm=document.createElement('span');nm.textContent=i[0];var sm=document.createElement('small');sm.textContent=i[1];mid.append(nm,sm);
+    var amt=document.createElement('b');amt.className='num';amt.textContent='$'+(i[2]/1e6).toFixed(2)+'M · '+Math.round(i[2]/total*100)+'%';
+    row.append(sw,mid,amt);list.appendChild(row);
+  });
+})();
+</script>
